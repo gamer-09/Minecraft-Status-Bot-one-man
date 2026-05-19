@@ -1,4 +1,5 @@
 import "dotenv/config";
+import http from "http";
 import {
   Client,
   GatewayIntentBits,
@@ -17,6 +18,17 @@ import * as ipCmd from "./commands/ip.js";
 import * as playersCmd from "./commands/players.js";
 import * as pingCmd from "./commands/ping.js";
 import * as helpCmd from "./commands/help.js";
+
+// Minimal HTTP server so Render's port scan succeeds
+const PORT = process.env.PORT || 3000;
+http
+  .createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("Bot is running.\n");
+  })
+  .listen(PORT, () => {
+    console.log(`Health check server listening on port ${PORT}`);
+  });
 
 interface Command {
   data: SlashCommandBuilder;
@@ -37,7 +49,6 @@ const client = new Client({
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Logged in as ${readyClient.user.tag}`);
 
-  // Register slash commands globally
   const rest = new REST().setToken(config.token);
   try {
     console.log("Refreshing application slash commands...");
