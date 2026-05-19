@@ -25,7 +25,7 @@ Set these in your hosting provider (Render):
 | `MC_HOST` | Minecraft server hostname (default: `oneman.falixsrv.me`) |
 | `MC_PORT` | Minecraft server port (default: `25565`) |
 | `MC_QUERY_HOST` | Minecraft query/direct IP (default: `162.55.100.208`) |
-| `MC_QUERY_PORT` | Minecraft query port (default: `21190`) |
+| `MC_QUERY_PORT` | Minecraft query port (default: `25565`) |
 
 ## Deploy to Render
 
