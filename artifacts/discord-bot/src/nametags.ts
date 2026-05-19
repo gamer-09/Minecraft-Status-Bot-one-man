@@ -20,9 +20,9 @@ export function pickStarterTag(): string {
   return STARTER_TAGS[Math.floor(Math.random() * STARTER_TAGS.length)];
 }
 
-// Nickname is just the tag in brackets — clean and simple
+// Nickname is set to the tag text directly — no brackets
 export function formatNick(tag: string): string {
-  return `[${tag}]`;
+  return tag;
 }
 
 export async function applyNametag(member: GuildMember, tag: string): Promise<boolean> {
