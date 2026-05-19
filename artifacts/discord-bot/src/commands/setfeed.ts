@@ -9,7 +9,7 @@ import {
 import { setStatusChannelId } from "../store.js";
 
 export const data = new SlashCommandBuilder()
-  .setName("setchannel")
+  .setName("setfeed")
   .setDescription("Set the channel where live server status and events are posted")
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   .addChannelOption((option) =>
@@ -36,7 +36,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   setStatusChannelId(target.id);
 
   const embed = new EmbedBuilder()
-    .setTitle("✅ Status Channel Set")
+    .setTitle("✅ Status Feed Channel Set")
     .setDescription(`All live server updates will now be posted in <#${target.id}>.`)
     .setColor(0x57f287)
     .addFields(

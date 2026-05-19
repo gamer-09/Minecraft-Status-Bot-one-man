@@ -19,7 +19,7 @@ import * as ipCmd from "./commands/ip.js";
 import * as playersCmd from "./commands/players.js";
 import * as pingCmd from "./commands/ping.js";
 import * as helpCmd from "./commands/help.js";
-import * as setchannelCmd from "./commands/setchannel.js";
+import * as setfeedCmd from "./commands/setfeed.js";
 
 // Minimal HTTP server so Render's port scan succeeds
 const PORT = process.env.PORT || 3000;
@@ -38,7 +38,7 @@ interface Command {
 }
 
 const commands = new Collection<string, Command>();
-const commandList: Command[] = [statusCmd, ipCmd, playersCmd, pingCmd, helpCmd, setchannelCmd];
+const commandList: Command[] = [statusCmd, ipCmd, playersCmd, pingCmd, helpCmd, setfeedCmd];
 
 for (const cmd of commandList) {
   commands.set(cmd.data.name, cmd);
@@ -56,7 +56,6 @@ client.once(Events.ClientReady, async (readyClient) => {
 
   try {
     if (config.guildId) {
-      // Guild commands register instantly — use this for your own server
       console.log(`Registering slash commands to guild ${config.guildId} (instant)...`);
       await rest.put(
         Routes.applicationGuildCommands(readyClient.user.id, config.guildId),
@@ -64,7 +63,6 @@ client.once(Events.ClientReady, async (readyClient) => {
       );
       console.log("✅ Guild slash commands registered instantly.");
     } else {
-      // Global commands can take up to 1 hour to propagate
       console.log("Registering global slash commands (may take up to 1 hour to appear)...");
       await rest.put(Routes.applicationCommands(readyClient.user.id), { body });
       console.log("✅ Global slash commands registered.");

@@ -10,7 +10,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const channelId = getStatusChannelId(config.statusChannelId);
   const channelLine = channelId
     ? `Live updates are posting in <#${channelId}>`
-    : "No status channel set — use `/setchannel` to configure one";
+    : "No status channel set — use `/setfeed` to configure one";
 
   const embed = new EmbedBuilder()
     .setTitle("🤖 Minecraft Bot — Command List")
@@ -29,7 +29,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       {
         name: "⚙️ Admin",
         value: [
-          "`/setchannel [channel]` — Set the channel for live status updates and event alerts",
+          "`/setfeed [channel]` — Set the channel for live status updates and event alerts",
           "*(Requires Administrator permission)*",
         ].join("\n"),
       },
