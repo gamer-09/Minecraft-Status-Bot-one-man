@@ -2,12 +2,18 @@ import { GuildMember } from "discord.js";
 import { getUser, saveUser } from "./store.js";
 
 const STARTER_TAGS = [
-  "The Newcomer",
-  "The Explorer",
-  "The Builder",
-  "The Miner",
-  "The Adventurer",
-  "The Wanderer",
+  "yearns for the mines",
+  "still finding coal",
+  "lost in the nether",
+  "fears the creepers",
+  "sleeps through raids",
+  "just passing through",
+  "building in the dark",
+  "digs in silence",
+  "avoids the end",
+  "hasn't touched grass",
+  "spawned yesterday",
+  "allergic to endermen",
 ];
 
 export function pickStarterTag(): string {
@@ -24,11 +30,9 @@ export async function applyNametag(member: GuildMember, tag: string): Promise<bo
   try {
     const nick = formatNick(member.displayName, tag);
     await member.setNickname(nick);
-
     const user = getUser(member.id);
     user.nametag = tag;
     saveUser(member.id, user);
-
     return true;
   } catch {
     return false;
@@ -37,8 +41,7 @@ export async function applyNametag(member: GuildMember, tag: string): Promise<bo
 
 export async function assignStarterTag(member: GuildMember): Promise<void> {
   const user = getUser(member.id);
-  if (user.nametag) return; // already has one
-
+  if (user.nametag) return;
   const tag = pickStarterTag();
   await applyNametag(member, tag);
 }

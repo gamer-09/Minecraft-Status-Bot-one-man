@@ -5,65 +5,65 @@ export interface ShopItem {
   description: string;
   price: number;
   type: "nametag" | "boost" | "shield" | "vip";
-  tagValue?: string;   // for nametag items
-  duration?: number;   // hours, for timed items
+  tagValue?: string;
+  duration?: number;
 }
 
 export const SHOP_ITEMS: ShopItem[] = [
   // ─── Nametags ────────────────────────────────────────────────────────────────
   {
-    id: "tag_newcomer",
-    name: "The Newcomer",
-    emoji: "🌱",
-    description: "A humble beginning. Adds `[The Newcomer]` to your name.",
+    id: "tag_haunts",
+    name: "haunts the overworld",
+    emoji: "🌿",
+    description: "Adds `[haunts the overworld]` to your name.",
     price: 100,
     type: "nametag",
-    tagValue: "The Newcomer",
+    tagValue: "haunts the overworld",
   },
   {
-    id: "tag_watcher",
-    name: "The Watcher",
+    id: "tag_endermen",
+    name: "speaks to endermen",
     emoji: "👁️",
-    description: "Silent. Observant. Adds `[The Watcher]` to your name.",
+    description: "Adds `[speaks to endermen]` to your name.",
     price: 300,
     type: "nametag",
-    tagValue: "The Watcher",
+    tagValue: "speaks to endermen",
   },
   {
-    id: "tag_shadow",
-    name: "The Shadow",
+    id: "tag_walls",
+    name: "walks through walls",
     emoji: "🌑",
-    description: "You move unseen. Adds `[The Shadow]` to your name.",
+    description: "Adds `[walks through walls]` to your name.",
     price: 500,
     type: "nametag",
-    tagValue: "The Shadow",
+    tagValue: "walks through walls",
   },
   {
-    id: "tag_destroyer",
-    name: "The Destroyer",
-    emoji: "💀",
-    description: "Fear the name. Adds `[The Destroyer]` to your name.",
+    id: "tag_dragon",
+    name: "slew the dragon",
+    emoji: "🐉",
+    description: "Adds `[slew the dragon]` to your name.",
     price: 750,
     type: "nametag",
-    tagValue: "The Destroyer",
+    tagValue: "slew the dragon",
   },
   {
-    id: "tag_legend",
-    name: "The Legend",
-    emoji: "⚡",
-    description: "Few earn this title. Adds `[The Legend]` to your name.",
+    id: "tag_answers",
+    name: "answers to no one",
+    emoji: "💀",
+    description: "Adds `[answers to no one]` to your name.",
     price: 1000,
     type: "nametag",
-    tagValue: "The Legend",
+    tagValue: "answers to no one",
   },
   {
-    id: "tag_champion",
-    name: "The Champion",
+    id: "tag_sky",
+    name: "touched the sky limit",
     emoji: "👑",
-    description: "The highest honour. Adds `[The Champion]` to your name.",
+    description: "The rarest tag. Adds `[touched the sky limit]` to your name.",
     price: 2000,
     type: "nametag",
-    tagValue: "The Champion",
+    tagValue: "touched the sky limit",
   },
   // ─── Battle Items ─────────────────────────────────────────────────────────────
   {
@@ -100,7 +100,9 @@ export function getItem(id: string): ShopItem | undefined {
 
 export function findItemByName(name: string): ShopItem | undefined {
   return SHOP_ITEMS.find(
-    (i) => i.name.toLowerCase() === name.toLowerCase() ||
-           i.id.toLowerCase() === name.toLowerCase()
+    (i) =>
+      i.name.toLowerCase() === name.toLowerCase() ||
+      i.id.toLowerCase() === name.toLowerCase() ||
+      i.tagValue?.toLowerCase() === name.toLowerCase()
   );
 }
