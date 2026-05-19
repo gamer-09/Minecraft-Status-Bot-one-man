@@ -25,12 +25,18 @@ export async function execute(message: Message) {
         }).join("\n")
       : "*No active effects*";
 
+  const { OWNER_TAG, ADMIN_TAG } = await import("../authority.js");
+  const isAuthority = user.nametag === OWNER_TAG || user.nametag === ADMIN_TAG;
+  const tagLine = user.nametag
+    ? `\`[${user.nametag}]\`${isAuthority ? " 👑" : ""}`
+    : "*None*";
+
   const embed = new EmbedBuilder()
     .setTitle(`💰  ${target.id === message.author.id ? "Your" : `${target.username}'s`} Balance`)
     .setColor(0xf1c40f)
     .addFields(
       { name: "Coins", value: `**${user.balance.toLocaleString()}** 🪙`, inline: true },
-      { name: "Tag", value: user.nametag ? `[${user.nametag}]` : "*None*", inline: true },
+      { name: "Tag", value: tagLine, inline: true },
       { name: "Active Effects", value: effectLines }
     )
     .setFooter({ text: "Earn coins by winning !battle • Spend them with !shop" })

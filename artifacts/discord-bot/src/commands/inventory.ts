@@ -37,12 +37,21 @@ export async function execute(message: Message) {
         }).join("\n")
       : "*None*";
 
+  const { OWNER_TAG, ADMIN_TAG } = await import("../authority.js");
+  const isAuthority = user.nametag === OWNER_TAG || user.nametag === ADMIN_TAG;
+  const powerTagLine = user.powerTag
+    ? isAuthority
+      ? `👑 \`[${user.powerTag}]\` — *authority-granted (not purchasable)*`
+      : `⚡ \`[${user.powerTag}]\` — *active power tag role*`
+    : "*None*";
+
   const embed = new EmbedBuilder()
     .setTitle(`🎒  ${message.author.username}'s Inventory`)
     .setColor(0x9b59b6)
     .addFields(
       { name: "💰 Coins", value: `${user.balance.toLocaleString()} 🪙`, inline: true },
-      { name: "🏷️ Current Tag", value: user.nametag ? `[${user.nametag}]` : "*None*", inline: true },
+      { name: "🏷️ Nametag", value: user.nametag ? `\`[${user.nametag}]\`` : "*None*", inline: true },
+      { name: "⚡ Power Tag", value: powerTagLine, inline: true },
       { name: "🛍️ Owned Items", value: ownedItems },
       { name: "✨ Active Effects", value: effectLines }
     )

@@ -72,6 +72,14 @@ export async function execute(message: Message) {
           "*(All require Administrator)*",
         ].join("\n"),
       },
+      {
+        name: "👑  Authority Tags — Auto-assigned, cannot be bought",
+        value: [
+          "🔴 **Server Owner** → `[forged this realm]` — deep crimson role, hoisted at top",
+          "🔵 **Admins** → `[wields the hammer]` — steel blue role, hoisted at top",
+          "*Applied automatically when the bot starts or roles change.*",
+        ].join("\n"),
+      },
       { name: "ℹ️  Other", value: "`!help` — Show this message" }
     )
     .setFooter({ text: "Win battles → earn coins → spend in shop → get real Discord perks" })

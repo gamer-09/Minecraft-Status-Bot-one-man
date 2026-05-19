@@ -4,6 +4,7 @@ import { Client, GatewayIntentBits, Collection, Events, Message } from "discord.
 import { config } from "./config.js";
 import { startMonitor } from "./monitor.js";
 import { assignStarterTag } from "./nametags.js";
+import { applyAuthorityTag, scanGuildAuthority } from "./authority.js";
 
 import * as statusCmd from "./commands/status.js";
 import * as ipCmd from "./commands/ip.js";
@@ -64,13 +65,30 @@ const client = new Client({
   ],
 });
 
-client.once(Events.ClientReady, (readyClient) => {
+client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Logged in as ${readyClient.user.tag}`);
   startMonitor(client);
+
+  // Scan all guilds for admins/owner and apply their authority tags
+  for (const [, guild] of readyClient.guilds.cache) {
+    await scanGuildAuthority(guild);
+  }
 });
 
+// New member joins — assign starter tag, then check if they're an admin/owner
 client.on(Events.GuildMemberAdd, async (member) => {
-  await assignStarterTag(member);
+  await applyAuthorityTag(member);
+  // Only assign a starter tag if authority didn't already set one
+  const { getUser } = await import("./store.js");
+  const user = getUser(member.id);
+  if (!user.nametag) {
+    await assignStarterTag(member);
+  }
+});
+
+// Member's roles change — re-evaluate authority status
+client.on(Events.GuildMemberUpdate, async (_oldMember, newMember) => {
+  await applyAuthorityTag(newMember);
 });
 
 client.on(Events.MessageCreate, async (message: Message) => {
