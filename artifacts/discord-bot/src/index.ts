@@ -3,7 +3,7 @@ import http from "http";
 import { Client, GatewayIntentBits, Collection, Events, Message } from "discord.js";
 import { config } from "./config.js";
 import { startMonitor } from "./monitor.js";
-import { assignStarterTag } from "./nametags.js";
+import { assignStarterTag, scanAndAssignStarterTags } from "./nametags.js";
 import { applyAuthorityTag, scanGuildAuthority } from "./authority.js";
 
 import * as statusCmd from "./commands/status.js";
@@ -69,9 +69,10 @@ client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Logged in as ${readyClient.user.tag}`);
   startMonitor(client);
 
-  // Scan all guilds for admins/owner and apply their authority tags
+  // Scan all guilds: authority tags first, then starter tags for everyone else
   for (const [, guild] of readyClient.guilds.cache) {
     await scanGuildAuthority(guild);
+    await scanAndAssignStarterTags(guild);
   }
 });
 

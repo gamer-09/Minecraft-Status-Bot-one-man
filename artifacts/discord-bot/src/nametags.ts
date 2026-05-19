@@ -1,4 +1,4 @@
-import { GuildMember } from "discord.js";
+import { Guild, GuildMember } from "discord.js";
 import { getUser, saveUser } from "./store.js";
 
 const STARTER_TAGS = [
@@ -44,4 +44,22 @@ export async function assignStarterTag(member: GuildMember): Promise<void> {
   if (user.nametag) return;
   const tag = pickStarterTag();
   await applyNametag(member, tag);
+}
+
+export async function scanAndAssignStarterTags(guild: Guild): Promise<void> {
+  try {
+    const members = await guild.members.fetch();
+    let assigned = 0;
+    for (const [, member] of members) {
+      if (member.user.bot) continue;
+      const user = getUser(member.id);
+      if (user.nametag) continue; // already has a tag (including authority tags set just before this)
+      const tag = pickStarterTag();
+      const ok = await applyNametag(member, tag);
+      if (ok) assigned++;
+    }
+    console.log(`[nametags] Assigned starter tags to ${assigned} existing members in "${guild.name}"`);
+  } catch (err) {
+    console.error("[nametags] Starter tag scan failed:", err);
+  }
 }
