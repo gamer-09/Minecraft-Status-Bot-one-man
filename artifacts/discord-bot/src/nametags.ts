@@ -20,78 +20,82 @@ export function pickStarterTag(): string {
   return STARTER_TAGS[Math.floor(Math.random() * STARTER_TAGS.length)];
 }
 
-export function formatNick(displayName: string, tag: string): string {
-  const base = displayName.replace(/\s*\[.*?\]\s*$/, "").trim();
-  const truncated = base.length > 20 ? base.slice(0, 20) : base;
-  return `${truncated} [${tag}]`;
+// Nickname is just the tag in brackets — clean and simple
+export function formatNick(tag: string): string {
+  return `[${tag}]`;
 }
 
 export async function applyNametag(member: GuildMember, tag: string): Promise<boolean> {
   try {
-    const nick = formatNick(member.displayName, tag);
-    await member.setNickname(nick);
+    await member.setNickname(formatNick(tag));
     // Only persist to store after the Discord nickname change succeeds
     const user = getUser(member.id);
     user.nametag = tag;
     saveUser(member.id, user);
     return true;
   } catch (err: unknown) {
-    // Log per-member failures so they are visible and not silently dropped
-    const name = member.displayName ?? member.id;
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn(`[nametags] Could not set nickname for ${name}: ${msg}`);
+    console.warn(`[nametags] Could not set nickname for ${member.user.username}: ${msg}`);
     return false;
   }
 }
 
 export async function assignStarterTag(member: GuildMember): Promise<void> {
+  if (member.user.bot) return;
   const user = getUser(member.id);
   if (user.nametag) return;
   const tag = pickStarterTag();
   await applyNametag(member, tag);
 }
 
-export async function scanAndAssignStarterTags(guild: Guild): Promise<void> {
+export interface ScanResult {
+  assigned: string[];
+  reapplied: string[];
+  skipped: number;
+  failed: string[];
+}
+
+export async function scanAndAssignStarterTags(guild: Guild): Promise<ScanResult> {
+  const result: ScanResult = { assigned: [], reapplied: [], skipped: 0, failed: [] };
+
   try {
     const members = await guild.members.fetch();
-    let assigned = 0;
-    let skipped = 0;
-    let failed = 0;
 
     for (const [, member] of members) {
       if (member.user.bot) continue;
 
       const user = getUser(member.id);
 
-      // Skip only if the store confirms a tag AND the current Discord nickname
-      // actually contains a bracketed tag — catches the case where a previous
-      // run saved the tag in the store but the setNickname call failed.
       if (user.nametag) {
-        const currentNick = member.nickname ?? member.user.username;
-        const hasTagInNick = /\[.+\]/.test(currentNick);
-        if (hasTagInNick) {
-          skipped++;
+        // Check if their actual nickname already has the bracket tag
+        const currentNick = member.nickname ?? "";
+        const hasTag = currentNick.startsWith("[") && currentNick.endsWith("]");
+        if (hasTag) {
+          result.skipped++;
           continue;
         }
-        // Store says tagged but nickname is bare — re-apply it
+        // Store says tagged but nickname is bare — re-apply
         const ok = await applyNametag(member, user.nametag);
-        if (ok) assigned++;
-        else failed++;
+        if (ok) result.reapplied.push(member.user.username);
+        else result.failed.push(member.user.username);
         continue;
       }
 
-      // Brand-new member (no store entry at all) — assign a fresh starter tag
+      // No tag yet — assign a fresh starter tag
       const tag = pickStarterTag();
       const ok = await applyNametag(member, tag);
-      if (ok) assigned++;
-      else failed++;
+      if (ok) result.assigned.push(member.user.username);
+      else result.failed.push(member.user.username);
     }
 
     console.log(
       `[nametags] Scan complete in "${guild.name}": ` +
-      `${assigned} assigned, ${skipped} already tagged, ${failed} failed (no permission)`
+      `${result.assigned.length} new, ${result.reapplied.length} reapplied, ` +
+      `${result.skipped} already tagged, ${result.failed.length} failed`
     );
   } catch (err) {
     console.error("[nametags] Starter tag scan failed:", err);
   }
+
+  return result;
 }
