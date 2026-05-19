@@ -70,10 +70,12 @@ export async function applyAuthorityTag(member: GuildMember): Promise<void> {
       user.nametag === OWNER_TAG || user.nametag === ADMIN_TAG;
 
     if (!hadAuthorityTag || user.nametag !== tag) {
-      await applyNametag(member, tag);
-      // Store as powerTag so !inventory reflects it
-      user.powerTag = tag;
-      saveUser(member.id, user);
+      const ok = await applyNametag(member, tag);
+      // Only persist powerTag if the nickname was actually applied
+      if (ok) {
+        user.powerTag = tag;
+        saveUser(member.id, user);
+      }
     }
   } catch (err) {
     console.error(`[authority] Failed to apply authority tag to ${member.displayName}:`, err);
@@ -84,7 +86,8 @@ export async function applyAuthorityTag(member: GuildMember): Promise<void> {
 
 export async function scanGuildAuthority(guild: Guild): Promise<void> {
   try {
-    const members = await guild.members.fetch();
+    // Force a fresh fetch so we don't miss members not yet in the cache
+    const members = await guild.members.fetch({ force: true });
     for (const [, member] of members) {
       await applyAuthorityTag(member);
     }
