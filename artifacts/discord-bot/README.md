@@ -29,15 +29,22 @@ Set these in your hosting provider (Render):
 
 ## Deploy to Render
 
-1. Push this folder to a GitHub repo (you can push just `artifacts/discord-bot/`)
-2. Go to [render.com](https://render.com) → New → **Web Service** (or Background Worker)
-3. Connect your GitHub repo
-4. Set **Build Command**: `npm install && npm run build`
+### Option A — Push just this folder (recommended)
+
+1. Copy the `artifacts/discord-bot/` folder into its own GitHub repo
+2. Go to [render.com](https://render.com) → New → **Background Worker**
+3. Connect that GitHub repo
+4. Set **Build Command**: `npm install -g pnpm && pnpm install && pnpm run build`
 5. Set **Start Command**: `node dist/index.js`
 6. Add all environment variables above under **Environment**
 7. Click **Deploy**
 
-> **Tip:** Use a **Background Worker** on Render (not a Web Service) so it runs 24/7 without needing HTTP traffic to stay alive.
+### Option B — Push the whole monorepo
+
+Same steps as above, but additionally set:
+- **Root Directory**: `artifacts/discord-bot`
+
+> **Use a Background Worker** (not a Web Service) so it runs 24/7 without needing HTTP traffic to stay alive.
 
 ## Getting Your IDs
 
@@ -50,6 +57,6 @@ Set these in your hosting provider (Render):
 ```bash
 cp .env.example .env
 # Fill in .env with your values
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
