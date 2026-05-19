@@ -1,17 +1,17 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, Colors } from "discord.js";
+import { Message, EmbedBuilder, Colors } from "discord.js";
 import { getServerStatus } from "../minecraft.js";
 import { config } from "../config.js";
 
-export const data = new SlashCommandBuilder()
-  .setName("players")
-  .setDescription("See who is currently online on the Minecraft server");
+export const name = "players";
+export const description = "See who is currently online on the Minecraft server";
 
-export async function execute(interaction: ChatInputCommandInteraction) {
-  await interaction.deferReply();
+export async function execute(message: Message) {
+  const msg = await message.reply("Fetching players...");
   const serverStatus = await getServerStatus();
 
   if (!serverStatus.online) {
-    await interaction.editReply({
+    await msg.edit({
+      content: "",
       embeds: [
         new EmbedBuilder()
           .setTitle("Server Offline")
@@ -36,5 +36,5 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .setTimestamp()
     .setFooter({ text: "Live data" });
 
-  await interaction.editReply({ embeds: [embed] });
+  await msg.edit({ content: "", embeds: [embed] });
 }

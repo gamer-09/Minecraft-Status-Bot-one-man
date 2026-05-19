@@ -1,16 +1,6 @@
 import "dotenv/config";
 import http from "http";
-import {
-  Client,
-  GatewayIntentBits,
-  Collection,
-  Events,
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-  SlashCommandOptionsOnlyBuilder,
-  REST,
-  Routes,
-} from "discord.js";
+import { Client, GatewayIntentBits, Collection, Events, Message } from "discord.js";
 import { config } from "./config.js";
 import { startMonitor } from "./monitor.js";
 
@@ -20,6 +10,8 @@ import * as playersCmd from "./commands/players.js";
 import * as pingCmd from "./commands/ping.js";
 import * as helpCmd from "./commands/help.js";
 import * as setfeedCmd from "./commands/setfeed.js";
+
+const PREFIX = "!";
 
 // Minimal HTTP server so Render's port scan succeeds
 const PORT = process.env.PORT || 3000;
@@ -33,63 +25,47 @@ http
   });
 
 interface Command {
-  data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
-  execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+  name: string;
+  description: string;
+  execute: (message: Message) => Promise<void>;
 }
 
 const commands = new Collection<string, Command>();
 const commandList: Command[] = [statusCmd, ipCmd, playersCmd, pingCmd, helpCmd, setfeedCmd];
 
 for (const cmd of commandList) {
-  commands.set(cmd.data.name, cmd);
+  commands.set(cmd.name, cmd);
 }
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
-client.once(Events.ClientReady, async (readyClient) => {
+client.once(Events.ClientReady, (readyClient) => {
   console.log(`✅ Logged in as ${readyClient.user.tag}`);
-
-  const rest = new REST().setToken(config.token);
-  const body = commandList.map((c) => c.data.toJSON());
-
-  try {
-    if (config.guildId) {
-      console.log(`Registering slash commands to guild ${config.guildId} (instant)...`);
-      await rest.put(
-        Routes.applicationGuildCommands(readyClient.user.id, config.guildId),
-        { body }
-      );
-      console.log("✅ Guild slash commands registered instantly.");
-    } else {
-      console.log("Registering global slash commands (may take up to 1 hour to appear)...");
-      await rest.put(Routes.applicationCommands(readyClient.user.id), { body });
-      console.log("✅ Global slash commands registered.");
-    }
-  } catch (err) {
-    console.error("Failed to register commands:", err);
-  }
-
   startMonitor(client);
 });
 
-client.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+client.on(Events.MessageCreate, async (message: Message) => {
+  if (message.author.bot) return;
+  if (!message.content.startsWith(PREFIX)) return;
 
-  const command = commands.get(interaction.commandName);
+  const args = message.content.slice(PREFIX.length).trim().split(/\s+/);
+  const commandName = args.shift()?.toLowerCase();
+  if (!commandName) return;
+
+  const command = commands.get(commandName);
   if (!command) return;
 
   try {
-    await command.execute(interaction);
+    await command.execute(message);
   } catch (err) {
-    console.error(`Error executing /${interaction.commandName}:`, err);
-    const reply = { content: "Something went wrong. Please try again.", ephemeral: true };
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(reply).catch(() => null);
-    } else {
-      await interaction.reply(reply).catch(() => null);
-    }
+    console.error(`Error executing !${commandName}:`, err);
+    await message.reply("Something went wrong. Please try again.").catch(() => null);
   }
 });
 
