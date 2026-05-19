@@ -1,6 +1,6 @@
 import { Message, EmbedBuilder } from "discord.js";
 import { config } from "../config.js";
-import { getStatusChannelId, getShopChannelId } from "../store.js";
+import { getStatusChannelId, getShopChannelId, getVipChannelId } from "../store.js";
 
 export const name = "help";
 export const description = "List all available bot commands";
@@ -8,18 +8,17 @@ export const description = "List all available bot commands";
 export async function execute(message: Message) {
   const statusChannelId = getStatusChannelId(config.statusChannelId);
   const shopChannelId = getShopChannelId();
+  const vipChannelId = getVipChannelId();
 
-  const statusLine = statusChannelId
-    ? `📡 Live feed → <#${statusChannelId}>`
-    : "📡 No feed channel set — use `!setfeed`";
-
-  const shopLine = shopChannelId
-    ? `🏪 Shop → <#${shopChannelId}>`
-    : "🏪 No shop channel set — use `!setshop`";
+  const lines = [
+    statusChannelId ? `📡 Live feed → <#${statusChannelId}>` : "📡 No feed channel — use `!setfeed`",
+    shopChannelId ? `🏪 Shop → <#${shopChannelId}>` : "🏪 No shop channel — use `!setshop`",
+    vipChannelId ? `🔑 VIP channel → <#${vipChannelId}>` : "🔑 No VIP channel — use `!setvip`",
+  ];
 
   const embed = new EmbedBuilder()
     .setTitle("🤖  Bot Commands")
-    .setDescription(`Monitoring \`oneman.falixsrv.me\`\n${statusLine}\n${shopLine}`)
+    .setDescription(`Monitoring \`oneman.falixsrv.me\`\n${lines.join("\n")}`)
     .setColor(0x5865f2)
     .addFields(
       {
@@ -35,11 +34,23 @@ export async function execute(message: Message) {
         name: "⚔️  Economy & Battles",
         value: [
           "`!battle @user` — Challenge someone, winner earns coins",
-          "`!balance [@user]` — Check your coin balance & active effects",
+          "`!balance [@user]` — Check coins, tag & active effects",
           "`!shop` — Browse the item shop (set channel only)",
           "`!buy <item>` — Buy an item with your coins",
-          "`!inventory` — View your owned items & effects",
+          "`!inventory` — View owned items & effects",
           "`!usetag <tag>` — Switch to an owned nametag",
+        ].join("\n"),
+      },
+      {
+        name: "⚡  Power Tags (from shop)",
+        value: [
+          "`burns bright` — Fiery red username (400 coins)",
+          "`struck by lightning` — Golden username (600 coins)",
+          "`born of the ocean` — Ocean blue username (600 coins)",
+          "`touched by the void` — Deep purple username (800 coins)",
+          "`the emerald one` — Emerald green username (800 coins)",
+          "`holds the key` — VIP channel access + orange name (1500 coins)",
+          "`above the rest` — Top of member list + gold name (2500 coins)",
         ].join("\n"),
       },
       {
@@ -49,7 +60,7 @@ export async function execute(message: Message) {
           "`!roll [sides]` — Roll a dice (default: d6)",
           "`!rate <anything>` — Rate anything out of 10",
           "`!roast @user` — Deliver a spicy roast",
-          '`!poll "Question" "Option 1" "Option 2" ...` — Create a poll (up to 5 options)',
+          '`!poll "Question" "Opt1" "Opt2" ...` — Create a poll',
         ].join("\n"),
       },
       {
@@ -57,15 +68,13 @@ export async function execute(message: Message) {
         value: [
           "`!setfeed [#channel]` — Set the live status feed channel",
           "`!setshop [#channel]` — Set the shop channel",
-          "*(Both require Administrator)*",
+          "`!setvip [#channel]` — Set the secret VIP channel",
+          "*(All require Administrator)*",
         ].join("\n"),
       },
-      {
-        name: "ℹ️  Other",
-        value: "`!help` — Show this message",
-      }
+      { name: "ℹ️  Other", value: "`!help` — Show this message" }
     )
-    .setFooter({ text: "Status auto-updates every 30s • Win battles to earn coins • Spend coins in the shop" })
+    .setFooter({ text: "Win battles → earn coins → spend in shop → get real Discord perks" })
     .setTimestamp();
 
   await message.reply({ embeds: [embed] });

@@ -14,6 +14,7 @@ function ensureDir() {
 interface BotConfig {
   statusChannelId?: string;
   shopChannelId?: string;
+  vipChannelId?: string;
 }
 
 function loadConfig(): BotConfig {
@@ -32,36 +33,38 @@ function saveConfig(data: BotConfig): void {
 export function getStatusChannelId(fallback?: string): string | undefined {
   return loadConfig().statusChannelId ?? fallback;
 }
-
 export function setStatusChannelId(channelId: string): void {
-  const cfg = loadConfig();
-  cfg.statusChannelId = channelId;
-  saveConfig(cfg);
+  const cfg = loadConfig(); cfg.statusChannelId = channelId; saveConfig(cfg);
 }
 
 export function getShopChannelId(): string | undefined {
   return loadConfig().shopChannelId;
 }
-
 export function setShopChannelId(channelId: string): void {
-  const cfg = loadConfig();
-  cfg.shopChannelId = channelId;
-  saveConfig(cfg);
+  const cfg = loadConfig(); cfg.shopChannelId = channelId; saveConfig(cfg);
+}
+
+export function getVipChannelId(): string | undefined {
+  return loadConfig().vipChannelId;
+}
+export function setVipChannelId(channelId: string): void {
+  const cfg = loadConfig(); cfg.vipChannelId = channelId; saveConfig(cfg);
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
 export interface ActiveEffect {
   type: "coinboost" | "shield" | "vip";
-  expiresAt?: number; // unix ms, undefined = consumed on use
+  expiresAt?: number;
 }
 
 export interface UserData {
   balance: number;
-  inventory: string[];       // item IDs owned
+  inventory: string[];
   activeEffects: ActiveEffect[];
-  battleCooldown?: number;   // unix ms
-  nametag?: string;          // current tag suffix e.g. "The Watcher"
+  battleCooldown?: number;
+  nametag?: string;
+  powerTag?: string;
 }
 
 type UsersFile = Record<string, UserData>;
@@ -113,9 +116,7 @@ export function addItem(userId: string, itemId: string): void {
 
 export function addEffect(userId: string, effect: ActiveEffect): void {
   const user = getUser(userId);
-  user.activeEffects = user.activeEffects.filter(
-    (e) => e.type !== effect.type
-  );
+  user.activeEffects = user.activeEffects.filter((e) => e.type !== effect.type);
   user.activeEffects.push(effect);
   saveUser(userId, user);
 }

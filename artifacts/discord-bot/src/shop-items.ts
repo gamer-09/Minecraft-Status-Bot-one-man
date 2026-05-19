@@ -4,9 +4,13 @@ export interface ShopItem {
   emoji: string;
   description: string;
   price: number;
-  type: "nametag" | "boost" | "shield" | "vip";
+  type: "nametag" | "boost" | "shield" | "vip" | "power";
   tagValue?: string;
   duration?: number;
+  // power tag fields
+  roleColor?: number;
+  hoisted?: boolean;
+  vipAccess?: boolean;
 }
 
 export const SHOP_ITEMS: ShopItem[] = [
@@ -65,6 +69,74 @@ export const SHOP_ITEMS: ShopItem[] = [
     type: "nametag",
     tagValue: "touched the sky limit",
   },
+
+  // ─── Power Tags ───────────────────────────────────────────────────────────────
+  {
+    id: "power_fire",
+    name: "burns bright",
+    emoji: "🔴",
+    description: "Your username glows **fiery red** in the server.",
+    price: 400,
+    type: "power",
+    roleColor: 0xe74c3c,
+  },
+  {
+    id: "power_gold",
+    name: "struck by lightning",
+    emoji: "🟡",
+    description: "Your username shines **golden** in the server.",
+    price: 600,
+    type: "power",
+    roleColor: 0xf1c40f,
+  },
+  {
+    id: "power_ocean",
+    name: "born of the ocean",
+    emoji: "🔵",
+    description: "Your username runs **deep blue** in the server.",
+    price: 600,
+    type: "power",
+    roleColor: 0x3498db,
+  },
+  {
+    id: "power_void",
+    name: "touched by the void",
+    emoji: "🟣",
+    description: "Your username pulses **deep purple** in the server.",
+    price: 800,
+    type: "power",
+    roleColor: 0x8e44ad,
+  },
+  {
+    id: "power_emerald",
+    name: "the emerald one",
+    emoji: "💚",
+    description: "Your username glows **emerald green** in the server.",
+    price: 800,
+    type: "power",
+    roleColor: 0x2ecc71,
+  },
+  {
+    id: "power_key",
+    name: "holds the key",
+    emoji: "🔑",
+    description: "Unlocks access to the **secret VIP channel**. Orange name.",
+    price: 1500,
+    type: "power",
+    roleColor: 0xe67e22,
+    vipAccess: true,
+  },
+  {
+    id: "power_above",
+    name: "above the rest",
+    emoji: "⬆️",
+    description: "Your name appears **separately at the top** of the member list, glowing gold.",
+    price: 2500,
+    type: "power",
+    roleColor: 0xf1c40f,
+    hoisted: true,
+  },
+
   // ─── Battle Items ─────────────────────────────────────────────────────────────
   {
     id: "coinboost",
@@ -82,6 +154,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 150,
     type: "shield",
   },
+
   // ─── Privileges ───────────────────────────────────────────────────────────────
   {
     id: "vip_24h",
@@ -99,10 +172,11 @@ export function getItem(id: string): ShopItem | undefined {
 }
 
 export function findItemByName(name: string): ShopItem | undefined {
+  const q = name.toLowerCase();
   return SHOP_ITEMS.find(
     (i) =>
-      i.name.toLowerCase() === name.toLowerCase() ||
-      i.id.toLowerCase() === name.toLowerCase() ||
-      i.tagValue?.toLowerCase() === name.toLowerCase()
+      i.name.toLowerCase() === q ||
+      i.id.toLowerCase() === q ||
+      i.tagValue?.toLowerCase() === q
   );
 }

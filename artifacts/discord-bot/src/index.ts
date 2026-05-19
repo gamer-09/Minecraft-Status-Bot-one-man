@@ -11,6 +11,8 @@ import * as playersCmd from "./commands/players.js";
 import * as pingCmd from "./commands/ping.js";
 import * as helpCmd from "./commands/help.js";
 import * as setfeedCmd from "./commands/setfeed.js";
+import * as setshopCmd from "./commands/setshop.js";
+import * as setvipCmd from "./commands/setvip.js";
 import * as coinflipCmd from "./commands/coinflip.js";
 import * as rollCmd from "./commands/roll.js";
 import * as rateCmd from "./commands/rate.js";
@@ -22,11 +24,9 @@ import * as shopCmd from "./commands/shop.js";
 import * as buyCmd from "./commands/buy.js";
 import * as inventoryCmd from "./commands/inventory.js";
 import * as usetagCmd from "./commands/usetag.js";
-import * as setshopCmd from "./commands/setshop.js";
 
 const PREFIX = "!";
 
-// Minimal HTTP server so Render's port scan succeeds
 const PORT = process.env.PORT || 3000;
 http
   .createServer((req, res) => {
@@ -46,7 +46,7 @@ interface Command {
 const commands = new Collection<string, Command>();
 const commandList: Command[] = [
   statusCmd, ipCmd, playersCmd, pingCmd, helpCmd,
-  setfeedCmd, setshopCmd,
+  setfeedCmd, setshopCmd, setvipCmd,
   coinflipCmd, rollCmd, rateCmd, roastCmd, pollCmd,
   battleCmd, balanceCmd, shopCmd, buyCmd, inventoryCmd, usetagCmd,
 ];
@@ -69,7 +69,6 @@ client.once(Events.ClientReady, (readyClient) => {
   startMonitor(client);
 });
 
-// Auto-assign starter nametag when a new member joins
 client.on(Events.GuildMemberAdd, async (member) => {
   await assignStarterTag(member);
 });
