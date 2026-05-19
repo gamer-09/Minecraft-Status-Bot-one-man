@@ -86,8 +86,7 @@ export async function applyAuthorityTag(member: GuildMember): Promise<void> {
 
 export async function scanGuildAuthority(guild: Guild): Promise<void> {
   try {
-    // Force a fresh fetch so we don't miss members not yet in the cache
-    const members = await guild.members.fetch({ force: true });
+    const members = await guild.members.fetch();
     for (const [, member] of members) {
       await applyAuthorityTag(member);
     }
