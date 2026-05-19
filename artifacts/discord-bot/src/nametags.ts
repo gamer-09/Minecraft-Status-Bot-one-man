@@ -53,8 +53,7 @@ export async function assignStarterTag(member: GuildMember): Promise<void> {
 
 export async function scanAndAssignStarterTags(guild: Guild): Promise<void> {
   try {
-    // Force a fresh fetch from Discord — do not rely on the potentially stale cache
-    const members = await guild.members.fetch({ force: true });
+    const members = await guild.members.fetch();
     let assigned = 0;
     let skipped = 0;
     let failed = 0;
