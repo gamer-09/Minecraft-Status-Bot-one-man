@@ -33,10 +33,11 @@ export async function execute(message: Message) {
     await message.reply({
       embeds: [
         new EmbedBuilder()
-          .setTitle("⚠️  Missing Permission")
+          .setTitle("⚠️  Missing Permission: Manage Nicknames")
           .setDescription(
-            "The bot does not have the **Manage Nicknames** permission.\n\n" +
-            "Go to **Server Settings → Roles → Hermes01** and enable **Manage Nicknames**, then run `!reload` again."
+            "The bot does not have **Manage Nicknames** permission.\n\n" +
+            "Fix: **Server Settings → Roles → Hermes01** → enable **Manage Nicknames** → Save\n" +
+            "Then run `!reload` again."
           )
           .setColor(0xe74c3c),
       ],
@@ -58,22 +59,28 @@ export async function execute(message: Message) {
     const result = await scanAndAssignStarterTags(guild);
 
     const lines: string[] = [];
+    lines.push(`📊 **Members fetched from Discord:** ${result.totalFetched}`);
 
     if (result.assigned.length > 0)
-      lines.push(`✅ **Tagged (new):** ${result.assigned.join(", ")}`);
+      lines.push(`✅ **Nickname set (new):** ${result.assigned.join(", ")}`);
     if (result.reapplied.length > 0)
-      lines.push(`🔄 **Re-applied:** ${result.reapplied.join(", ")}`);
+      lines.push(`🔄 **Nickname re-applied:** ${result.reapplied.join(", ")}`);
     if (result.skipped > 0)
-      lines.push(`⏭️ **Already tagged:** ${result.skipped} member(s)`);
+      lines.push(`⏭️ **Already correct:** ${result.skipped} member(s)`);
+
     if (result.failed.length > 0) {
+      const failDetails = result.failed
+        .map((f) => `• **${f.username}** — ${f.reason}`)
+        .join("\n");
       lines.push(
-        `❌ **Could not rename:** ${result.failed.join(", ")}\n` +
-        `> The bot's role must be **above** these members' roles in **Server Settings → Roles**.\n` +
-        `> Bot's highest role: **${botHighestRole?.name ?? "unknown"}** (position ${botHighestRole?.position ?? "?"})`
+        `❌ **Failed (${result.failed.length}):**\n${failDetails}\n\n` +
+        `> Bot's highest role: **${botHighestRole?.name ?? "unknown"}** (position ${botHighestRole?.position ?? "?"})\n` +
+        `> If error says "Missing Permissions", go to **Server Settings → Roles** and drag the bot's role above the members listed above.`
       );
     }
 
-    if (lines.length === 0) lines.push("No changes needed — all members already have tags.");
+    if (result.assigned.length === 0 && result.reapplied.length === 0 && result.failed.length === 0)
+      lines.push("No changes needed — all members already have correct nicknames.");
 
     await pending.edit({
       embeds: [
