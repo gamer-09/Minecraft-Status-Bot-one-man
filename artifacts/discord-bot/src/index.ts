@@ -1,8 +1,9 @@
 import "dotenv/config";
 import http from "http";
-import { Client, GatewayIntentBits, Collection, Events, Message, ComponentType } from "discord.js";
+import { Client, GatewayIntentBits, Collection, Events, Message } from "discord.js";
 import { config } from "./config.js";
 import { startMonitor } from "./monitor.js";
+import { assignStarterTag } from "./nametags.js";
 
 import * as statusCmd from "./commands/status.js";
 import * as ipCmd from "./commands/ip.js";
@@ -12,8 +13,16 @@ import * as helpCmd from "./commands/help.js";
 import * as setfeedCmd from "./commands/setfeed.js";
 import * as coinflipCmd from "./commands/coinflip.js";
 import * as rollCmd from "./commands/roll.js";
-import * as eightballCmd from "./commands/8ball.js";
+import * as rateCmd from "./commands/rate.js";
+import * as roastCmd from "./commands/roast.js";
 import * as pollCmd from "./commands/poll.js";
+import * as battleCmd from "./commands/battle.js";
+import * as balanceCmd from "./commands/balance.js";
+import * as shopCmd from "./commands/shop.js";
+import * as buyCmd from "./commands/buy.js";
+import * as inventoryCmd from "./commands/inventory.js";
+import * as usetagCmd from "./commands/usetag.js";
+import * as setshopCmd from "./commands/setshop.js";
 
 const PREFIX = "!";
 
@@ -36,16 +45,10 @@ interface Command {
 
 const commands = new Collection<string, Command>();
 const commandList: Command[] = [
-  statusCmd,
-  ipCmd,
-  playersCmd,
-  pingCmd,
-  helpCmd,
-  setfeedCmd,
-  coinflipCmd,
-  rollCmd,
-  eightballCmd,
-  pollCmd,
+  statusCmd, ipCmd, playersCmd, pingCmd, helpCmd,
+  setfeedCmd, setshopCmd,
+  coinflipCmd, rollCmd, rateCmd, roastCmd, pollCmd,
+  battleCmd, balanceCmd, shopCmd, buyCmd, inventoryCmd, usetagCmd,
 ];
 
 for (const cmd of commandList) {
@@ -56,6 +59,7 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.MessageContent,
   ],
 });
@@ -63,6 +67,11 @@ const client = new Client({
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`✅ Logged in as ${readyClient.user.tag}`);
   startMonitor(client);
+});
+
+// Auto-assign starter nametag when a new member joins
+client.on(Events.GuildMemberAdd, async (member) => {
+  await assignStarterTag(member);
 });
 
 client.on(Events.MessageCreate, async (message: Message) => {
