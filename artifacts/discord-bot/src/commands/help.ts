@@ -14,6 +14,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       { name: "/ip", value: "Get the server IP and instructions to join", inline: false },
       { name: "/players", value: "See who is currently online", inline: false },
       { name: "/ping", value: "Check the server response time", inline: false },
+      { name: "/setchannel", value: "*(Admin)* Set the channel for live status updates and events", inline: false },
       { name: "/help", value: "Show this help message", inline: false }
     )
     .setFooter({ text: "Status updates are posted automatically every 30 seconds" })

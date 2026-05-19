@@ -7,6 +7,7 @@ import {
   Events,
   ChatInputCommandInteraction,
   SlashCommandBuilder,
+  SlashCommandOptionsOnlyBuilder,
   REST,
   Routes,
 } from "discord.js";
@@ -18,6 +19,7 @@ import * as ipCmd from "./commands/ip.js";
 import * as playersCmd from "./commands/players.js";
 import * as pingCmd from "./commands/ping.js";
 import * as helpCmd from "./commands/help.js";
+import * as setchannelCmd from "./commands/setchannel.js";
 
 // Minimal HTTP server so Render's port scan succeeds
 const PORT = process.env.PORT || 3000;
@@ -31,12 +33,12 @@ http
   });
 
 interface Command {
-  data: SlashCommandBuilder;
+  data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }
 
 const commands = new Collection<string, Command>();
-const commandList: Command[] = [statusCmd, ipCmd, playersCmd, pingCmd, helpCmd];
+const commandList: Command[] = [statusCmd, ipCmd, playersCmd, pingCmd, helpCmd, setchannelCmd];
 
 for (const cmd of commandList) {
   commands.set(cmd.data.name, cmd);

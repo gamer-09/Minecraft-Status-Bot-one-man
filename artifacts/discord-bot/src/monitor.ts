@@ -2,6 +2,7 @@ import { Client, TextChannel } from "discord.js";
 import { getServerStatus, ServerStatus } from "./minecraft.js";
 import { buildStatusEmbed, buildPlayerJoinEmbed, buildPlayerLeaveEmbed } from "./embeds.js";
 import { config } from "./config.js";
+import { getStatusChannelId } from "./store.js";
 
 let previousPlayers: Set<string> = new Set();
 let previousOnline: boolean | null = null;
@@ -14,9 +15,11 @@ export function startMonitor(client: Client) {
 }
 
 async function tick(client: Client) {
-  if (!config.statusChannelId) return;
+  // Prefer the channel saved via /setchannel, fall back to env var
+  const channelId = getStatusChannelId(config.statusChannelId);
+  if (!channelId) return;
 
-  const channel = client.channels.cache.get(config.statusChannelId) as TextChannel | undefined;
+  const channel = client.channels.cache.get(channelId) as TextChannel | undefined;
   if (!channel) return;
 
   const serverStatus = await getServerStatus();
@@ -51,7 +54,7 @@ async function tick(client: Client) {
     await channel.send(msg).catch(() => null);
   }
 
-  // Update or post the pinned status message
+  // Update or post the live status embed
   const statusEmbed = buildStatusEmbed(serverStatus);
 
   if (statusMessageId) {
