@@ -3,6 +3,7 @@ import "dotenv/config";
 export const config = {
   token: process.env.DISCORD_BOT_TOKEN!,
   clientId: process.env.DISCORD_CLIENT_ID!,
+  guildId: process.env.DISCORD_GUILD_ID ?? null,
   statusChannelId: process.env.STATUS_CHANNEL_ID!,
   mc: {
     host: process.env.MC_HOST || "oneman.falixsrv.me",

@@ -20,12 +20,15 @@ Set these in your hosting provider (Render):
 | Variable | Description |
 |---|---|
 | `DISCORD_BOT_TOKEN` | Your Discord bot token |
-| `DISCORD_CLIENT_ID` | Your Discord app/client ID |
-| `STATUS_CHANNEL_ID` | Channel ID where status updates are posted |
+| `DISCORD_CLIENT_ID` | Your Discord app/client ID (General Information → Application ID) |
+| `DISCORD_GUILD_ID` | **Recommended** — Your Discord server ID. Makes commands appear instantly. Right-click your server icon → Copy Server ID (Developer Mode must be on) |
+| `STATUS_CHANNEL_ID` | Channel ID where status updates are posted (can also be set with `/setchannel`) |
 | `MC_HOST` | Minecraft server hostname (default: `oneman.falixsrv.me`) |
 | `MC_PORT` | Minecraft server port (default: `21190`) |
 | `MC_QUERY_HOST` | Minecraft query/direct IP (default: `162.55.100.208`) |
 | `MC_QUERY_PORT` | Minecraft query port (default: `25565`) |
+
+> **Why `DISCORD_GUILD_ID` matters:** Without it, slash commands are registered globally and Discord can take **up to 1 hour** to show them. With it, commands appear in your server **instantly** every time the bot starts.
 
 ## Deploy to Render
 
