@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, PermissionFlagsBits, Role } from "discord.js";
+import { Guild, GuildMember, PermissionFlagsBits, Role } from "discord.js";
 import { applyNametag } from "./nametags.js";
 import { getUser, saveUser } from "./store.js";
 
@@ -30,6 +30,9 @@ async function getOrCreateRole(guild: Guild, name: string, color: number): Promi
 // ─── Single member assignment ─────────────────────────────────────────────────
 
 export async function applyAuthorityTag(member: GuildMember): Promise<void> {
+  // Never tag bots — the bot itself has admin perms but should not be tagged
+  if (member.user.bot) return;
+
   try {
     const isOwner = member.guild.ownerId === member.id;
     const isAdmin =
@@ -71,12 +74,19 @@ export async function applyAuthorityTag(member: GuildMember): Promise<void> {
 
     if (!hadAuthorityTag || user.nametag !== tag) {
       const ok = await applyNametag(member, tag);
-      if (!ok && isOwner) {
-        // Discord does not allow bots to change the server owner's nickname.
-        // Still persist the tag in the store so !inventory reflects it correctly.
-        console.warn(
-          `[authority] Cannot set nickname for owner ${member.displayName} — Discord restriction. Tag saved to store only.`
-        );
+      if (!ok) {
+        if (isOwner) {
+          // Discord does not allow bots to change the server owner's nickname.
+          // Persist the tag in the store so !inventory reflects it correctly.
+          console.warn(
+            `[authority] Cannot set nickname for owner "${member.user.username}" — Discord blocks bots from changing the owner's nickname. Tag saved to store only. Set your nickname manually to: ${member.user.username} [${tag}]`
+          );
+        } else {
+          // For admins, failure usually means the bot's role is below theirs in the hierarchy.
+          console.warn(
+            `[authority] Cannot set nickname for admin "${member.user.username}" — bot role may be below this member's role in the server hierarchy. Move the bot's role above all member roles in Server Settings → Roles.`
+          );
+        }
         user.nametag = tag;
       }
       // Always persist powerTag for authority members regardless of nickname success
@@ -84,7 +94,7 @@ export async function applyAuthorityTag(member: GuildMember): Promise<void> {
       saveUser(member.id, user);
     }
   } catch (err) {
-    console.error(`[authority] Failed to apply authority tag to ${member.displayName}:`, err);
+    console.error(`[authority] Failed to apply authority tag to ${member.user.username}:`, err);
   }
 }
 
@@ -93,10 +103,18 @@ export async function applyAuthorityTag(member: GuildMember): Promise<void> {
 export async function scanGuildAuthority(guild: Guild): Promise<void> {
   try {
     const members = await guild.members.fetch();
+    let processed = 0;
+    let botsSkipped = 0;
+
     for (const [, member] of members) {
+      if (member.user.bot) { botsSkipped++; continue; }
       await applyAuthorityTag(member);
+      processed++;
     }
-    console.log(`[authority] Scanned ${members.size} members in "${guild.name}"`);
+
+    console.log(
+      `[authority] Scanned "${guild.name}": ${processed} humans processed, ${botsSkipped} bots skipped`
+    );
   } catch (err) {
     console.error("[authority] Guild scan failed:", err);
   }
