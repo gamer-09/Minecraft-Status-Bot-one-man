@@ -1,0 +1,22 @@
+{
+  "name": "@workspace/discord-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Falix Minecraft server",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "deploy-commands": "tsx src/deploy-commands.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "minecraft-server-util": "^5.4.1",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "~5.9.3",
+    "@types/node": "^22.0.0"
+  }
+}
