@@ -69,6 +69,7 @@ export async function execute(message: Message) {
           "`!setfeed [#channel]` — Set the live status feed channel",
           "`!setshop [#channel]` — Set the shop channel",
           "`!setvip [#channel]` — Set the secret VIP channel",
+          "`!reload` — Re-scan all members and re-apply nametags",
           "*(All require Administrator)*",
         ].join("\n"),
       },
@@ -79,6 +80,10 @@ export async function execute(message: Message) {
           "🔵 **Admins** → `[wields the hammer]` — steel blue role, hoisted at top",
           "*Applied automatically when the bot starts or roles change.*",
         ].join("\n"),
+      },
+      {
+        name: "⚠️  Note — Server Owner Nickname",
+        value: "Discord does not allow bots to change the **server owner's** nickname. If you are the owner, set your nickname manually to `Name [forged this realm]`.",
       },
       { name: "ℹ️  Other", value: "`!help` — Show this message" }
     )
