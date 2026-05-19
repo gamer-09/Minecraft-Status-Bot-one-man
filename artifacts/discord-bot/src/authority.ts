@@ -71,11 +71,17 @@ export async function applyAuthorityTag(member: GuildMember): Promise<void> {
 
     if (!hadAuthorityTag || user.nametag !== tag) {
       const ok = await applyNametag(member, tag);
-      // Only persist powerTag if the nickname was actually applied
-      if (ok) {
-        user.powerTag = tag;
-        saveUser(member.id, user);
+      if (!ok && isOwner) {
+        // Discord does not allow bots to change the server owner's nickname.
+        // Still persist the tag in the store so !inventory reflects it correctly.
+        console.warn(
+          `[authority] Cannot set nickname for owner ${member.displayName} — Discord restriction. Tag saved to store only.`
+        );
+        user.nametag = tag;
       }
+      // Always persist powerTag for authority members regardless of nickname success
+      user.powerTag = tag;
+      saveUser(member.id, user);
     }
   } catch (err) {
     console.error(`[authority] Failed to apply authority tag to ${member.displayName}:`, err);
