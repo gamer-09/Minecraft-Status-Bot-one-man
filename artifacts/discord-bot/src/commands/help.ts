@@ -8,36 +8,45 @@ export const description = "List all available bot commands";
 export async function execute(message: Message) {
   const channelId = getStatusChannelId(config.statusChannelId);
   const channelLine = channelId
-    ? `Live updates are posting in <#${channelId}>`
-    : "No status channel set — use `!setfeed` to configure one";
+    ? `📡 Live feed is posting in <#${channelId}>`
+    : "📡 No feed channel set — use `!setfeed` to configure one";
 
   const embed = new EmbedBuilder()
-    .setTitle("🤖 Minecraft Bot — Command List")
+    .setTitle("🤖  Bot Commands")
     .setDescription(`Monitoring \`oneman.falixsrv.me\`\n${channelLine}`)
     .setColor(0x5865f2)
     .addFields(
       {
-        name: "📊 Server Info",
+        name: "⛏️  Minecraft",
         value: [
-          "`!status` — Live server status: online/offline, players, version, ping",
-          "`!players` — See who is currently online",
-          "`!ping` — Check the server's response time",
-          "`!ip` — Get the server address and how to connect",
+          "`!status` — Live server status, players & ping",
+          "`!players` — Who's online right now",
+          "`!ping` — Server response time & quality",
+          "`!ip` — Server address & how to connect",
         ].join("\n"),
       },
       {
-        name: "⚙️ Admin",
+        name: "🎮  Fun",
         value: [
-          "`!setfeed [#channel]` — Set the channel for live status updates and event alerts",
-          "*(Requires Administrator permission)*",
+          "`!coinflip` — Flip a coin",
+          "`!roll [sides]` — Roll a dice (default: d6)",
+          '`!8ball <question>` — Ask the magic 8-ball',
+          '`!poll "Question" "Option 1" "Option 2" ...` — Create a vote poll (up to 5 options)',
         ].join("\n"),
       },
       {
-        name: "ℹ️ Other",
+        name: "⚙️  Admin",
+        value: [
+          "`!setfeed [#channel]` — Set the live status feed channel",
+          "*(Requires Administrator)*",
+        ].join("\n"),
+      },
+      {
+        name: "ℹ️  Other",
         value: "`!help` — Show this message",
       }
     )
-    .setFooter({ text: "Status embed updates every 30 seconds • Player join/leave and online/offline alerts are automatic" })
+    .setFooter({ text: "Status embed auto-updates every 30s • Player join/leave alerts are automatic" })
     .setTimestamp();
 
   await message.reply({ embeds: [embed] });

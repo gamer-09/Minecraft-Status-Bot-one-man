@@ -1,4 +1,4 @@
-import { Message, EmbedBuilder, Colors } from "discord.js";
+import { Message, EmbedBuilder } from "discord.js";
 import { getServerStatus } from "../minecraft.js";
 import { config } from "../config.js";
 
@@ -6,17 +6,17 @@ export const name = "players";
 export const description = "See who is currently online on the Minecraft server";
 
 export async function execute(message: Message) {
-  const msg = await message.reply("Fetching players...");
-  const serverStatus = await getServerStatus();
+  const msg = await message.reply("⏳ Fetching player list...");
+  const status = await getServerStatus();
 
-  if (!serverStatus.online) {
+  if (!status.online) {
     await msg.edit({
       content: "",
       embeds: [
         new EmbedBuilder()
-          .setTitle("Server Offline")
-          .setDescription("The server is currently offline. No player data available.")
-          .setColor(Colors.Red)
+          .setTitle("🔴  Server Offline")
+          .setDescription("The server is offline — no player data available.")
+          .setColor(0xe74c3c)
           .setTimestamp(),
       ],
     });
@@ -24,15 +24,18 @@ export async function execute(message: Message) {
   }
 
   const playerList =
-    serverStatus.players.length > 0
-      ? serverStatus.players.map((p) => `• **${p}**`).join("\n")
-      : "*No players online right now.*";
+    status.players.length > 0
+      ? status.players.map((p) => `> 🎮 **${p}**`).join("\n")
+      : "*The server is empty right now. Be the first to join!*";
 
   const embed = new EmbedBuilder()
-    .setTitle(`👥 Online Players — ${serverStatus.playerCount}/${serverStatus.maxPlayers}`)
+    .setTitle(`👥  Online Players`)
     .setDescription(playerList)
-    .setColor(Colors.Blurple)
-    .addFields({ name: "Server", value: `\`${config.mc.host}\``, inline: true })
+    .setColor(0x3498db)
+    .addFields(
+      { name: "Count", value: `${status.playerCount}/${status.maxPlayers}`, inline: true },
+      { name: "Server", value: `\`${config.mc.host}\``, inline: true }
+    )
     .setTimestamp()
     .setFooter({ text: "Live data" });
 

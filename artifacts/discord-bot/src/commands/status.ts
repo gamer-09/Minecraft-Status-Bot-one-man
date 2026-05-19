@@ -6,7 +6,7 @@ export const name = "status";
 export const description = "Check the current Minecraft server status";
 
 export async function execute(message: Message) {
-  const msg = await message.reply("Checking server...");
+  const msg = await message.reply("⏳ Fetching server status...");
   const serverStatus = await getServerStatus();
   const embed = buildStatusEmbed(serverStatus);
   await msg.edit({ content: "", embeds: [embed] });

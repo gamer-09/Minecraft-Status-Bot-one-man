@@ -1,6 +1,6 @@
 import "dotenv/config";
 import http from "http";
-import { Client, GatewayIntentBits, Collection, Events, Message } from "discord.js";
+import { Client, GatewayIntentBits, Collection, Events, Message, ComponentType } from "discord.js";
 import { config } from "./config.js";
 import { startMonitor } from "./monitor.js";
 
@@ -10,6 +10,10 @@ import * as playersCmd from "./commands/players.js";
 import * as pingCmd from "./commands/ping.js";
 import * as helpCmd from "./commands/help.js";
 import * as setfeedCmd from "./commands/setfeed.js";
+import * as coinflipCmd from "./commands/coinflip.js";
+import * as rollCmd from "./commands/roll.js";
+import * as eightballCmd from "./commands/8ball.js";
+import * as pollCmd from "./commands/poll.js";
 
 const PREFIX = "!";
 
@@ -31,7 +35,18 @@ interface Command {
 }
 
 const commands = new Collection<string, Command>();
-const commandList: Command[] = [statusCmd, ipCmd, playersCmd, pingCmd, helpCmd, setfeedCmd];
+const commandList: Command[] = [
+  statusCmd,
+  ipCmd,
+  playersCmd,
+  pingCmd,
+  helpCmd,
+  setfeedCmd,
+  coinflipCmd,
+  rollCmd,
+  eightballCmd,
+  pollCmd,
+];
 
 for (const cmd of commandList) {
   commands.set(cmd.name, cmd);
