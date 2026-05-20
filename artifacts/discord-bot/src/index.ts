@@ -71,11 +71,21 @@ client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Logged in as ${readyClient.user.tag}`);
   startMonitor(client);
 
-  // Scan all guilds: authority tags first, then starter tags for everyone else
+  // Scan all guilds: fetch members once, then run authority + starter tag scans
   for (const [, guild] of readyClient.guilds.cache) {
-    await scanGuildAuthority(guild);
-    await scanAndAssignStarterTags(guild);
+    try {
+      const members = await guild.members.fetch();
+      await scanGuildAuthority(guild, members);
+      await scanAndAssignStarterTags(guild, members);
+    } catch (err) {
+      console.error(`[startup] Failed to scan guild "${guild.name}":`, err);
+    }
   }
+});
+
+// Prevent unhandled gateway errors from crashing the process
+client.on("error", (err) => {
+  console.error("[discord] Client error:", err);
 });
 
 // New member joins — assign starter tag, then check if they're an admin/owner
