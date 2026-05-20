@@ -5,7 +5,7 @@ export const name = "start";
 export const description = "Get the link and IP to start the Minecraft server via Falix";
 
 export async function execute(message: Message) {
-  const serverIp = config.host ?? "oneman.falixsrv.me";
+  const serverIp = config.mc.host ?? "oneman.falixsrv.me";
 
   const embed = new EmbedBuilder()
     .setTitle("🚀  Start the Minecraft Server")
