@@ -55,8 +55,9 @@ export async function execute(message: Message) {
   });
 
   try {
-    await scanGuildAuthority(guild);
-    const result = await scanAndAssignStarterTags(guild);
+    const members = await guild.members.fetch();
+    await scanGuildAuthority(guild, members);
+    const result = await scanAndAssignStarterTags(guild, members);
 
     const lines: string[] = [];
 
