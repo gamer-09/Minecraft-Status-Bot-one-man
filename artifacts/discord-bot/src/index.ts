@@ -23,6 +23,7 @@ import * as pollCmd from "./commands/poll.js";
 import * as battleCmd from "./commands/battle.js";
 import * as acceptCmd from "./commands/accept.js";
 import * as declineCmd from "./commands/decline.js";
+  import * as leaderboardCmd from "./commands/leaderboard.js";
 import * as balanceCmd from "./commands/balance.js";
 import * as shopCmd from "./commands/shop.js";
 import * as buyCmd from "./commands/buy.js";
@@ -56,7 +57,7 @@ const commandList: Command[] = [
   statusCmd, ipCmd, playersCmd, pingCmd, helpCmd,
   setfeedCmd, setshopCmd, setvipCmd, setbattleCmd,
   coinflipCmd, rollCmd, rateCmd, roastCmd, pollCmd,
-  battleCmd, acceptCmd, declineCmd,
+  battleCmd, acceptCmd, declineCmd, leaderboardCmd,
   balanceCmd, shopCmd, buyCmd, inventoryCmd, usetagCmd, reloadCmd, testnickCmd, stopCmd, startCmd,
 ];
 

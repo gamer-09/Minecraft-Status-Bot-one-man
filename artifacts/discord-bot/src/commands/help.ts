@@ -48,6 +48,7 @@ export async function execute(message: Message) {
       {
         name: "💰  Economy",
         value: [
+          "`!leaderboard` — Top 10 players ranked by coins",
           "`!balance [@user]` — Check coins, tag & active effects",
           "`!shop` — Browse the item shop",
           "`!buy <item>` — Buy an item with your coins",
