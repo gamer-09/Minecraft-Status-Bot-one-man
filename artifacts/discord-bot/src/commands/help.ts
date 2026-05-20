@@ -1,6 +1,6 @@
 import { Message, EmbedBuilder } from "discord.js";
 import { config } from "../config.js";
-import { getStatusChannelId, getShopChannelId, getVipChannelId, getBattleChannelId } from "../store.js";
+import { getStatusChannelId, getShopChannelId, getVipChannelId, getBattleChannelId, getLeaderboardChannelId } from "../store.js";
 
 export const name = "help";
 export const description = "List all available bot commands";
@@ -10,12 +10,14 @@ export async function execute(message: Message) {
   const shopChannelId = getShopChannelId();
   const vipChannelId = getVipChannelId();
   const battleChannelId = getBattleChannelId();
+  const leaderboardChannelId = getLeaderboardChannelId();
 
   const lines = [
     statusChannelId ? `📡 Live feed → <#${statusChannelId}>` : "📡 No feed channel — use `!setfeed`",
     shopChannelId ? `🏪 Shop → <#${shopChannelId}>` : "🏪 Shop disabled — use `!setshop`",
     vipChannelId ? `🔑 VIP channel → <#${vipChannelId}>` : "🔑 No VIP channel — use `!setvip`",
     battleChannelId ? `⚔️ Battle arena → <#${battleChannelId}>` : "⚔️ No battle arena — use `!setbattle`",
+    leaderboardChannelId ? `🏆 Leaderboard updates → <#${leaderboardChannelId}>` : "🏆 No leaderboard channel — use `!setleaderboard`",
   ];
 
   const embed = new EmbedBuilder()
@@ -88,9 +90,10 @@ export async function execute(message: Message) {
           "`!setshop [#channel]` — Set the shop channel",
           "`!setvip [#channel]` — Set the secret VIP channel",
           "`!setbattle [#channel]` — Designate the exclusive battle arena",
+          "`!setleaderboard [#channel]` — Set a channel for live leaderboard updates",
           "`!give @user <amount>` — Give or take coins from a player",
           "`!give @user -200` — Use a negative number to remove coins",
-          "`!stop feed|shop|vip|battle` — Disable a feature",
+          "`!stop feed|shop|vip|battle|leaderboard` — Disable a feature",
           "`!reload` — Re-scan all members and re-apply nametags",
           "`!testnick @user` — Test nickname permission on a specific member",
           "*(All require Administrator)*",

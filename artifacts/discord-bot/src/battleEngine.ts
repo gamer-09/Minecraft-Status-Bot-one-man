@@ -6,6 +6,7 @@ import {
   Message,
 } from "discord.js";
 import { addCoins, hasEffect, consumeEffect, recordBattleWin, recordBattleLoss, recordBattleDraw } from "./store.js";
+import { checkLeaderboardUpdate } from "./leaderboardWatcher.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -428,4 +429,6 @@ export async function runBattle(
 
   inBattle.delete(challengerId);
   inBattle.delete(targetId);
+
+  checkLeaderboardUpdate(client).catch(() => null);
 }

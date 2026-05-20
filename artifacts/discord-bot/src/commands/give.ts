@@ -1,5 +1,6 @@
 import { Message, EmbedBuilder, PermissionFlagsBits } from "discord.js";
 import { addCoins } from "../store.js";
+import { checkLeaderboardUpdate } from "../leaderboardWatcher.js";
 
 export const name = "give";
 export const description = "Give (or take) coins from a user — !give @user <amount> (Admin only)";
@@ -61,6 +62,7 @@ export async function execute(message: Message) {
     }
 
     const newBalance = addCoins(target.id, amount);
+    checkLeaderboardUpdate(message.client).catch(() => null);
     const action = amount > 0 ? "given" : "removed";
     const abs = Math.abs(amount);
     const color = amount > 0 ? 0x2ecc71 : 0xe74c3c;

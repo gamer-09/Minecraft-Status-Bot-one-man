@@ -16,6 +16,7 @@ import fs from "fs";
     shopChannelId?: string;
     vipChannelId?: string;
     battleChannelId?: string;
+    leaderboardChannelId?: string;
   }
 
   function loadConfig(): BotConfig {
@@ -69,6 +70,16 @@ import fs from "fs";
   }
   export function clearBattleChannelId(): void {
     const cfg = loadConfig(); delete cfg.battleChannelId; saveConfig(cfg);
+  }
+
+  export function getLeaderboardChannelId(): string | undefined {
+    return loadConfig().leaderboardChannelId;
+  }
+  export function setLeaderboardChannelId(channelId: string): void {
+    const cfg = loadConfig(); cfg.leaderboardChannelId = channelId; saveConfig(cfg);
+  }
+  export function clearLeaderboardChannelId(): void {
+    const cfg = loadConfig(); delete cfg.leaderboardChannelId; saveConfig(cfg);
   }
 
   // ─── Users ────────────────────────────────────────────────────────────────────

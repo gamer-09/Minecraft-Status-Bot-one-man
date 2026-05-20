@@ -1,10 +1,10 @@
 import { Message, EmbedBuilder, PermissionFlagsBits } from "discord.js";
-import { clearStatusChannelId, clearShopChannelId, clearVipChannelId, clearBattleChannelId } from "../store.js";
+import { clearStatusChannelId, clearShopChannelId, clearVipChannelId, clearBattleChannelId, clearLeaderboardChannelId } from "../store.js";
 
 export const name = "stop";
-export const description = "Disable a bot feature — !stop <feed|shop|vip|battle> (Admin only)";
+export const description = "Disable a bot feature — !stop <feed|shop|vip|battle|leaderboard> (Admin only)";
 
-const USAGE = "Usage: `!stop feed` · `!stop shop` · `!stop vip` · `!stop battle`";
+const USAGE = "Usage: `!stop feed` · `!stop shop` · `!stop vip` · `!stop battle` · `!stop leaderboard`";
 
 export async function execute(message: Message) {
   if (!message.member?.permissions.has(PermissionFlagsBits.Administrator)) {
@@ -22,7 +22,7 @@ export async function execute(message: Message) {
   const args = message.content.trim().split(/\s+/);
   const sub = args[1]?.toLowerCase();
 
-  if (!sub || !["feed", "shop", "vip", "battle"].includes(sub)) {
+  if (!sub || !["feed", "shop", "vip", "battle", "leaderboard"].includes(sub)) {
     await message.reply({
       embeds: [
         new EmbedBuilder()
@@ -74,6 +74,17 @@ export async function execute(message: Message) {
         new EmbedBuilder()
           .setTitle("⏹️  Battle Arena Cleared")
           .setDescription("The battle arena has been unset — `!battle` is now disabled everywhere.\nRun `!setbattle` to designate a new arena.")
+          .setColor(0x95a5a6)
+          .setTimestamp(),
+      ],
+    });
+  } else if (sub === "leaderboard") {
+    clearLeaderboardChannelId();
+    await message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle("⏹️  Leaderboard Channel Cleared")
+          .setDescription("Automatic leaderboard updates have been disabled.\nRun `!setleaderboard` to set a new channel.")
           .setColor(0x95a5a6)
           .setTimestamp(),
       ],
