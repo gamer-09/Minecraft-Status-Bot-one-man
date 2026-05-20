@@ -1,10 +1,10 @@
 import { Message, EmbedBuilder, PermissionFlagsBits } from "discord.js";
-  import { addCoins, getUser } from "../store.js";
+import { addCoins } from "../store.js";
 
-  export const name = "give";
-  export const description = "Give (or take) coins from a user — !give @user <amount> (Admin only)";
+export const name = "give";
+export const description = "Give (or take) coins from a user — !give @user <amount> (Admin only)";
 
-  export async function execute(message: Message) {
+export async function execute(message: Message) {
     if (!message.member?.permissions.has(PermissionFlagsBits.Administrator)) {
       await message.reply({
         embeds: [
@@ -23,11 +23,12 @@ import { Message, EmbedBuilder, PermissionFlagsBits } from "discord.js";
         embeds: [
           new EmbedBuilder()
             .setTitle("❓  Usage")
-            .setDescription("Mention a user and provide an amount.
-
-Examples:
-`!give @user 500` — give 500 coins
-`!give @user -200` — remove 200 coins")
+            .setDescription(
+              "Mention a user and provide an amount.\n\n" +
+              "Examples:\n" +
+              "`!give @user 500` — give 500 coins\n" +
+              "`!give @user -200` — remove 200 coins"
+            )
             .setColor(0xe67e22),
         ],
       });
@@ -49,8 +50,10 @@ Examples:
         embeds: [
           new EmbedBuilder()
             .setTitle("❓  Invalid Amount")
-            .setDescription("Provide a non-zero number.
-Example: `!give @user 500` or `!give @user -200`")
+            .setDescription(
+              "Provide a non-zero number.\n" +
+              "Example: `!give @user 500` or `!give @user -200`"
+            )
             .setColor(0xe67e22),
         ],
       });
