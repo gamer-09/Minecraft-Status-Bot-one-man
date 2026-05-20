@@ -1,4 +1,4 @@
-import { DiscordAPIError, Guild, GuildMember } from "discord.js";
+import { Collection, DiscordAPIError, Guild, GuildMember } from "discord.js";
 import { getUser, saveUser } from "./store.js";
 
 const STARTER_TAGS = [
@@ -66,18 +66,17 @@ export interface ScanResult {
   totalFetched: number;
 }
 
-export async function scanAndAssignStarterTags(guild: Guild): Promise<ScanResult> {
+export async function scanAndAssignStarterTags(
+  guild: Guild,
+  members: Collection<string, GuildMember>,
+): Promise<ScanResult> {
   const result: ScanResult = {
     assigned: [],
     reapplied: [],
     skipped: 0,
     failed: [],
-    totalFetched: 0,
+    totalFetched: members.size,
   };
-
-  // Let fetch errors propagate so callers can surface the real error message
-  const members = await guild.members.fetch();
-  result.totalFetched = members.size;
 
   for (const [, member] of members) {
     if (member.user.bot) continue;
