@@ -24,6 +24,7 @@ export async function execute(message: Message) {
       {
         name: "⛏️  Minecraft",
         value: [
+          "`!start` — Get the link & IP to wake up the server on Falix",
           "`!status` — Live server status, players & ping",
           "`!players` — Who's online right now",
           "`!ping` — Server response time & quality",
