@@ -49,6 +49,9 @@ export async function execute(message: Message) {
         name: "💰  Economy",
         value: [
           "`!leaderboard` — Top 10 players ranked by coins",
+          "`!battlestats [@user]` — Win/loss record, streaks, coins earned",
+          "`!profile [@user]` — Full profile: balance, tag, effects, battle record",
+          "`!daily` — Claim your daily coin reward (24h cooldown)",
           "`!balance [@user]` — Check coins, tag & active effects",
           "`!shop` — Browse the item shop",
           "`!buy <item>` — Buy an item with your coins",
@@ -85,6 +88,8 @@ export async function execute(message: Message) {
           "`!setshop [#channel]` — Set the shop channel",
           "`!setvip [#channel]` — Set the secret VIP channel",
           "`!setbattle [#channel]` — Designate the exclusive battle arena",
+          "`!give @user <amount>` — Give or take coins from a player",
+          "`!give @user -200` — Use a negative number to remove coins",
           "`!stop feed|shop|vip|battle` — Disable a feature",
           "`!reload` — Re-scan all members and re-apply nametags",
           "`!testnick @user` — Test nickname permission on a specific member",

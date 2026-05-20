@@ -5,7 +5,7 @@ import {
   DMChannel,
   Message,
 } from "discord.js";
-import { addCoins, hasEffect, consumeEffect } from "./store.js";
+import { addCoins, hasEffect, consumeEffect, recordBattleWin, recordBattleLoss, recordBattleDraw } from "./store.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -379,6 +379,11 @@ export async function runBattle(
     }
     if (shieldUsed) consumeEffect(loserId, "shield");
     addCoins(winnerId, reward);
+    recordBattleWin(winnerId, reward);
+    recordBattleLoss(loserId);
+  } else {
+    recordBattleDraw(challengerId);
+    recordBattleDraw(targetId);
   }
 
   // ── Cooldown ──────────────────────────────────────────────────────────────────
