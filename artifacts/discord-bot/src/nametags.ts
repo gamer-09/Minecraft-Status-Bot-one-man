@@ -1,7 +1,7 @@
 import { Collection, DiscordAPIError, Guild, GuildMember } from "discord.js";
-import { getUser, saveUser } from "./store.js";
+import { getUser, getAllUsers, saveUser } from "./store.js";
 
-const STARTER_TAGS = [
+export const STARTER_TAGS = [
   "yearns for the mines",
   "still finding coal",
   "lost in the nether",
@@ -14,10 +14,47 @@ const STARTER_TAGS = [
   "hasn't touched grass",
   "spawned yesterday",
   "allergic to endermen",
+  "afraid of spiders",
+  "never found diamonds",
+  "talks to villagers",
+  "punched a cactus",
+  "fell into lava once",
+  "blames the server lag",
+  "hoards dirt blocks",
+  "cries at sunsets",
+  "scared of caves",
+  "eats raw chicken",
+  "mines straight down",
+  "forgot to sleep",
+  "lost their bed",
+  "built a dirt house",
+  "died to fall damage",
+  "can't find the surface",
+  "afraid of phantoms",
+  "planted one tree",
+  "burned their crops",
+  "wanders aimlessly",
+  "feeds the chickens",
 ];
 
-export function pickStarterTag(): string {
-  return STARTER_TAGS[Math.floor(Math.random() * STARTER_TAGS.length)];
+/** Pick a tag not already used by anyone in the server.
+ *  Falls back to a random tag if every tag is already taken. */
+export function pickStarterTag(usedTags: Set<string> = new Set()): string {
+  const available = STARTER_TAGS.filter((t) => !usedTags.has(t));
+  const pool = available.length > 0 ? available : STARTER_TAGS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/** Return the set of starter tags already assigned to anyone in the store. */
+export function getUsedStarterTags(): Set<string> {
+  const used = new Set<string>();
+  const all = getAllUsers();
+  for (const data of Object.values(all)) {
+    if (data.nametag && STARTER_TAGS.includes(data.nametag)) {
+      used.add(data.nametag);
+    }
+  }
+  return used;
 }
 
 export function formatNick(baseName: string, tag: string): string {
@@ -59,7 +96,8 @@ export async function assignStarterTag(member: GuildMember): Promise<void> {
   if (member.user.bot) return;
   const user = getUser(member.id);
   if (user.nametag) return;
-  const tag = pickStarterTag();
+  const used = getUsedStarterTags();
+  const tag = pickStarterTag(used);
   await applyNametag(member, tag);
 }
 
@@ -83,6 +121,9 @@ export async function scanAndAssignStarterTags(
     totalFetched: members.size,
   };
 
+  // Seed used tags from store so this scan never re-uses an existing tag
+  const usedTags = getUsedStarterTags();
+
   for (const [, member] of members) {
     if (member.user.bot) continue;
 
@@ -104,8 +145,9 @@ export async function scanAndAssignStarterTags(
       continue;
     }
 
-    // No tag yet — assign a fresh starter tag
-    const tag = pickStarterTag();
+    // No tag yet — assign a fresh starter tag (avoid already-used ones)
+    const tag = pickStarterTag(usedTags);
+    usedTags.add(tag);
     const res = await applyNametag(member, tag);
     if (res.ok) result.assigned.push(member.user.username);
     else result.failed.push({ username: member.user.username, reason: res.error ?? "unknown" });

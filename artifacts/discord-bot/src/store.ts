@@ -91,6 +91,10 @@ function saveUsers(data: UsersFile): void {
   fs.writeFileSync(USERS_FILE, JSON.stringify(data, null, 2));
 }
 
+export function getAllUsers(): Record<string, UserData> {
+  return loadUsers();
+}
+
 export function getUser(userId: string): UserData {
   const users = loadUsers();
   if (!users[userId]) {
