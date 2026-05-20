@@ -75,45 +75,42 @@ export async function scanAndAssignStarterTags(guild: Guild): Promise<ScanResult
     totalFetched: 0,
   };
 
-  try {
-    const members = await guild.members.fetch();
-    result.totalFetched = members.size;
+  // Let fetch errors propagate so callers can surface the real error message
+  const members = await guild.members.fetch();
+  result.totalFetched = members.size;
 
-    for (const [, member] of members) {
-      if (member.user.bot) continue;
+  for (const [, member] of members) {
+    if (member.user.bot) continue;
 
-      const user = getUser(member.id);
+    const user = getUser(member.id);
 
-      if (user.nametag) {
-        // Already has a tag in store — check if the actual Discord nickname matches
-        const currentNick = member.nickname ?? "";
-        if (currentNick === user.nametag) {
-          result.skipped++;
-          continue;
-        }
-        // Store tag exists but nickname doesn't match — re-apply
-        const res = await applyNametag(member, user.nametag);
-        if (res.ok) result.reapplied.push(member.user.username);
-        else result.failed.push({ username: member.user.username, reason: res.error ?? "unknown" });
+    if (user.nametag) {
+      // Already has a tag in store — check if the actual Discord nickname matches
+      const currentNick = member.nickname ?? "";
+      if (currentNick === user.nametag) {
+        result.skipped++;
         continue;
       }
-
-      // No tag yet — assign a fresh starter tag
-      const tag = pickStarterTag();
-      const res = await applyNametag(member, tag);
-      if (res.ok) result.assigned.push(member.user.username);
+      // Store tag exists but nickname doesn't match — re-apply
+      const res = await applyNametag(member, user.nametag);
+      if (res.ok) result.reapplied.push(member.user.username);
       else result.failed.push({ username: member.user.username, reason: res.error ?? "unknown" });
+      continue;
     }
 
-    console.log(
-      `[nametags] Scan complete in "${guild.name}": ` +
-      `fetched ${result.totalFetched}, ${result.assigned.length} new, ` +
-      `${result.reapplied.length} reapplied, ${result.skipped} already tagged, ` +
-      `${result.failed.length} failed`
-    );
-  } catch (err) {
-    console.error("[nametags] Starter tag scan failed:", err);
+    // No tag yet — assign a fresh starter tag
+    const tag = pickStarterTag();
+    const res = await applyNametag(member, tag);
+    if (res.ok) result.assigned.push(member.user.username);
+    else result.failed.push({ username: member.user.username, reason: res.error ?? "unknown" });
   }
+
+  console.log(
+    `[nametags] Scan complete in "${guild.name}": ` +
+    `fetched ${result.totalFetched}, ${result.assigned.length} new, ` +
+    `${result.reapplied.length} reapplied, ${result.skipped} already tagged, ` +
+    `${result.failed.length} failed`
+  );
 
   return result;
 }
