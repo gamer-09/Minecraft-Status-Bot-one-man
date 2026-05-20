@@ -20,8 +20,9 @@ export function pickStarterTag(): string {
   return STARTER_TAGS[Math.floor(Math.random() * STARTER_TAGS.length)];
 }
 
-export function formatNick(tag: string): string {
-  return tag;
+export function formatNick(baseName: string, tag: string): string {
+  const full = `${baseName} [${tag}]`;
+  return full.length <= 32 ? full : full.slice(0, 32);
 }
 
 export interface ApplyResult {
@@ -31,7 +32,8 @@ export interface ApplyResult {
 
 export async function applyNametag(member: GuildMember, tag: string): Promise<ApplyResult> {
   try {
-    await member.setNickname(formatNick(tag));
+    const baseName = member.user.globalName ?? member.user.username;
+    await member.setNickname(formatNick(baseName, tag));
     const user = getUser(member.id);
     user.nametag = tag;
     saveUser(member.id, user);
@@ -85,8 +87,10 @@ export async function scanAndAssignStarterTags(
 
     if (user.nametag) {
       // Already has a tag in store — check if the actual Discord nickname matches
+      const baseName = member.user.globalName ?? member.user.username;
+      const expectedNick = formatNick(baseName, user.nametag);
       const currentNick = member.nickname ?? "";
-      if (currentNick === user.nametag) {
+      if (currentNick === expectedNick) {
         result.skipped++;
         continue;
       }
