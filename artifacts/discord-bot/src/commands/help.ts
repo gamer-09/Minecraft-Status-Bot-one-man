@@ -12,7 +12,7 @@ export async function execute(message: Message) {
 
   const lines = [
     statusChannelId ? `📡 Live feed → <#${statusChannelId}>` : "📡 No feed channel — use `!setfeed`",
-    shopChannelId ? `🏪 Shop → <#${shopChannelId}>` : "🏪 No shop channel — use `!setshop`",
+    shopChannelId ? `🏪 Shop → <#${shopChannelId}>` : "🏪 Shop disabled — use `!setshop`",
     vipChannelId ? `🔑 VIP channel → <#${vipChannelId}>` : "🔑 No VIP channel — use `!setvip`",
   ];
 
@@ -35,7 +35,7 @@ export async function execute(message: Message) {
         value: [
           "`!battle @user` — Challenge someone, winner earns coins",
           "`!balance [@user]` — Check coins, tag & active effects",
-          "`!shop` — Browse the item shop (set channel only)",
+          "`!shop` — Browse the item shop",
           "`!buy <item>` — Buy an item with your coins",
           "`!inventory` — View owned items & effects",
           "`!usetag <tag>` — Switch to an owned nametag",
@@ -69,21 +69,23 @@ export async function execute(message: Message) {
           "`!setfeed [#channel]` — Set the live status feed channel",
           "`!setshop [#channel]` — Set the shop channel",
           "`!setvip [#channel]` — Set the secret VIP channel",
+          "`!stop feed|shop|vip` — Disable a feature until re-set",
           "`!reload` — Re-scan all members and re-apply nametags",
+          "`!testnick @user` — Test nickname permission on a specific member",
           "*(All require Administrator)*",
         ].join("\n"),
       },
       {
         name: "👑  Authority Tags — Auto-assigned, cannot be bought",
         value: [
-          "🔴 **Server Owner** → `[forged this realm]` — deep crimson role, hoisted at top",
-          "🔵 **Admins** → `[wields the hammer]` — steel blue role, hoisted at top",
-          "*Applied automatically when the bot starts or roles change.*",
+          "🔴 **Server Owner** → `Name [forged this realm]` — deep crimson role",
+          "🔵 **Admins** → `Name [wields the hammer]` — steel blue role",
+          "*Applied automatically on startup or when roles change.*",
         ].join("\n"),
       },
       {
-        name: "⚠️  Note — Server Owner Nickname",
-        value: "Discord does not allow bots to change the **server owner's** nickname. If you are the owner, set your nickname manually to `Name [forged this realm]`.",
+        name: "🏷️  Nametag Format",
+        value: "All nicknames are set as `Username [tag]`.\n⚠️ Discord does not allow bots to change the **server owner's** nickname — set it manually.",
       },
       { name: "ℹ️  Other", value: "`!help` — Show this message" }
     )
