@@ -21,8 +21,11 @@ export function pickStarterTag(): string {
 }
 
 export function formatNick(baseName: string, tag: string): string {
-  const full = `${baseName} [${tag}]`;
-  return full.length <= 32 ? full : full.slice(0, 32);
+  // Discord nickname limit is 32 chars. Format: "{base} [{tag}]"
+  // base budget = 32 - " [" - tag - "]" = 29 - tag.length
+  const maxBase = Math.max(1, 29 - tag.length);
+  const trimmed = baseName.length > maxBase ? baseName.slice(0, maxBase).trimEnd() : baseName;
+  return `${trimmed} [${tag}]`;
 }
 
 export interface ApplyResult {
