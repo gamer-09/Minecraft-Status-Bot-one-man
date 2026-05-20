@@ -59,6 +59,30 @@ export async function execute(message: Message) {
     const result = await scanAndAssignStarterTags(guild);
 
     const lines: string[] = [];
+
+    if (result.totalFetched === 0) {
+      await pending.edit({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle("⚠️  Server Members Intent Not Enabled")
+            .setDescription(
+              "The bot fetched **0 members** — this means the **Server Members Intent** is disabled.\n\n" +
+              "**Fix (one-time setup):**\n" +
+              "1. Go to https://discord.com/developers/applications\n" +
+              "2. Select your bot application\n" +
+              "3. Click **Bot** in the left sidebar\n" +
+              "4. Scroll to **Privileged Gateway Intents**\n" +
+              "5. Enable **Server Members Intent** ✅\n" +
+              "6. Click **Save Changes**\n" +
+              "7. Restart your bot, then run `!reload` again"
+            )
+            .setColor(0xe74c3c)
+            .setTimestamp(),
+        ],
+      });
+      return;
+    }
+
     lines.push(`📊 **Members fetched from Discord:** ${result.totalFetched}`);
 
     if (result.assigned.length > 0)
