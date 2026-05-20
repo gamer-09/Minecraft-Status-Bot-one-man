@@ -45,13 +45,13 @@ export async function execute(message: Message) {
       {
         name: "⚡  Power Tags (from shop)",
         value: [
-          "`burns bright` — Fiery red username (400 coins)",
-          "`struck by lightning` — Golden username (600 coins)",
-          "`born of the ocean` — Ocean blue username (600 coins)",
-          "`touched by the void` — Deep purple username (800 coins)",
-          "`the emerald one` — Emerald green username (800 coins)",
-          "`holds the key` — VIP channel access + orange name (1500 coins)",
-          "`above the rest` — Top of member list + gold name (2500 coins)",
+          "`scorched by dragonfire` — Fiery red name (400 coins)",
+          "`blessed by thunder gods` — Ancient gold name (600 coins)",
+          "`risen from the deep` — Ocean blue name (600 coins)",
+          "`consumed by the void` — Void purple name (800 coins)",
+          "`bearer of emerald crown` — Emerald green name (800 coins)",
+          "`keeper of forbidden gate` — VIP channel + orange name (1500 coins)",
+          "`ascended above all` — Top of member list + gold name (2500 coins)",
         ].join("\n"),
       },
       {

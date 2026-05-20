@@ -3,26 +3,44 @@ import { applyNametag } from "./nametags.js";
 import { getUser, saveUser } from "./store.js";
 
 // ─── Special authority tags ───────────────────────────────────────────────────
-//  These are auto-assigned; they cannot be bought.
 
 export const OWNER_TAG = "forged this realm";
 export const ADMIN_TAG = "wields the hammer";
 
-const OWNER_ROLE_NAME = "authority: realm forger";
-const ADMIN_ROLE_NAME = "authority: hammer wielder";
+// Two roles per authority: a dark base color + a vivid glow layer above it.
+// Discord shows the color of the highest-positioned role — the glow role sits
+// above the base, so the name appears in the bright glowing color. The base
+// role is visible in the role panel giving the "base + glow" layered look.
 
-const OWNER_COLOR = 0xc0392b;   // deep crimson
-const ADMIN_COLOR = 0x2980b9;   // steel blue
+const OWNER_BASE_ROLE  = "authority: realm forger";
+const OWNER_GLOW_ROLE  = "authority: realm forger glow";
+const OWNER_BASE_COLOR = 0x7f0000; // deep dark crimson (base layer)
+const OWNER_GLOW_COLOR = 0xff2d55; // vivid neon red     (glow layer — shown on name)
+
+const ADMIN_BASE_ROLE  = "authority: hammer wielder";
+const ADMIN_GLOW_ROLE  = "authority: hammer wielder glow";
+const ADMIN_BASE_COLOR = 0x1e3a8a; // deep dark navy    (base layer)
+const ADMIN_GLOW_COLOR = 0x38bdf8; // vivid sky blue     (glow layer — shown on name)
+
+const ALL_AUTHORITY_ROLES = [
+  OWNER_BASE_ROLE, OWNER_GLOW_ROLE,
+  ADMIN_BASE_ROLE, ADMIN_GLOW_ROLE,
+];
 
 // ─── Role helpers ─────────────────────────────────────────────────────────────
 
-async function getOrCreateRole(guild: Guild, name: string, color: number): Promise<Role> {
+async function getOrCreateRole(
+  guild: Guild,
+  name: string,
+  color: number,
+  hoist: boolean,
+): Promise<Role> {
   const existing = guild.roles.cache.find((r) => r.name === name);
   if (existing) return existing;
   return guild.roles.create({
     name,
     color,
-    hoist: true,
+    hoist,
     reason: "Authority role — auto-created by bot",
   });
 }
@@ -30,71 +48,77 @@ async function getOrCreateRole(guild: Guild, name: string, color: number): Promi
 // ─── Single member assignment ─────────────────────────────────────────────────
 
 export async function applyAuthorityTag(member: GuildMember): Promise<void> {
-  // Never tag bots — the bot itself has admin perms but should not be tagged
   if (member.user.bot) return;
 
   try {
     const isOwner = member.guild.ownerId === member.id;
     const isAdmin =
-      !isOwner &&
-      member.permissions.has(PermissionFlagsBits.Administrator);
+      !isOwner && member.permissions.has(PermissionFlagsBits.Administrator);
 
     if (!isOwner && !isAdmin) {
-      // Remove authority roles if they somehow have one
-      const ownerRole = member.guild.roles.cache.find((r) => r.name === OWNER_ROLE_NAME);
-      const adminRole = member.guild.roles.cache.find((r) => r.name === ADMIN_ROLE_NAME);
-      if (ownerRole && member.roles.cache.has(ownerRole.id))
-        await member.roles.remove(ownerRole).catch(() => null);
-      if (adminRole && member.roles.cache.has(adminRole.id))
-        await member.roles.remove(adminRole).catch(() => null);
+      // Strip all authority roles from non-authority members
+      for (const roleName of ALL_AUTHORITY_ROLES) {
+        const role = member.guild.roles.cache.find((r) => r.name === roleName);
+        if (role && member.roles.cache.has(role.id))
+          await member.roles.remove(role).catch(() => null);
+      }
       return;
     }
 
-    const tag = isOwner ? OWNER_TAG : ADMIN_TAG;
-    const roleName = isOwner ? OWNER_ROLE_NAME : ADMIN_ROLE_NAME;
-    const roleColor = isOwner ? OWNER_COLOR : ADMIN_COLOR;
+    const tag          = isOwner ? OWNER_TAG        : ADMIN_TAG;
+    const baseRoleName = isOwner ? OWNER_BASE_ROLE  : ADMIN_BASE_ROLE;
+    const glowRoleName = isOwner ? OWNER_GLOW_ROLE  : ADMIN_GLOW_ROLE;
+    const baseColor    = isOwner ? OWNER_BASE_COLOR  : ADMIN_BASE_COLOR;
+    const glowColor    = isOwner ? OWNER_GLOW_COLOR  : ADMIN_GLOW_COLOR;
 
-    // Remove the opposite authority role if held
-    const oppositeRoleName = isOwner ? ADMIN_ROLE_NAME : OWNER_ROLE_NAME;
-    const oppositeRole = member.guild.roles.cache.find((r) => r.name === oppositeRoleName);
-    if (oppositeRole && member.roles.cache.has(oppositeRole.id)) {
-      await member.roles.remove(oppositeRole).catch(() => null);
+    // Remove the opposite authority's roles
+    const oppositeRoles = isOwner
+      ? [ADMIN_BASE_ROLE, ADMIN_GLOW_ROLE]
+      : [OWNER_BASE_ROLE, OWNER_GLOW_ROLE];
+    for (const rn of oppositeRoles) {
+      const r = member.guild.roles.cache.find((x) => x.name === rn);
+      if (r && member.roles.cache.has(r.id))
+        await member.roles.remove(r).catch(() => null);
     }
 
-    const role = await getOrCreateRole(member.guild, roleName, roleColor);
+    // Create/fetch both roles
+    const baseRole = await getOrCreateRole(member.guild, baseRoleName, baseColor, false);
+    const glowRole = await getOrCreateRole(member.guild, glowRoleName, glowColor, true);
 
-    if (!member.roles.cache.has(role.id)) {
-      await member.roles.add(role);
+    // Ensure the glow role sits above the base role so its color shows on the name
+    if (glowRole.position <= baseRole.position) {
+      await glowRole.setPosition(baseRole.position + 1).catch(() => null);
     }
 
-    // Apply the nametag (overrides any purchased nametag for authority members)
+    // Assign both roles
+    const toAdd: Role[] = [];
+    if (!member.roles.cache.has(baseRole.id)) toAdd.push(baseRole);
+    if (!member.roles.cache.has(glowRole.id))  toAdd.push(glowRole);
+    if (toAdd.length > 0) await member.roles.add(toAdd);
+
+    // Apply nametag
     const user = getUser(member.id);
-    const hadAuthorityTag =
-      user.nametag === OWNER_TAG || user.nametag === ADMIN_TAG;
+    const hadAuthorityTag = user.nametag === OWNER_TAG || user.nametag === ADMIN_TAG;
 
     if (!hadAuthorityTag || user.nametag !== tag) {
-      const ok = await applyNametag(member, tag);
-      if (!ok) {
+      const result = await applyNametag(member, tag);
+      if (!result.ok) {
         if (isOwner) {
-          // Discord does not allow bots to change the server owner's nickname.
-          // Persist the tag in the store so !inventory reflects it correctly.
           console.warn(
-            `[authority] Cannot set nickname for owner "${member.user.username}" — Discord blocks bots from changing the owner's nickname. Tag saved to store only. Set your nickname manually to: ${member.user.username} [${tag}]`
+            `[authority] Cannot set nickname for owner "${member.user.username}" — Discord blocks bots from changing the server owner's nickname. Set it manually to: ${member.user.username} [${tag}]`
           );
         } else {
-          // For admins, failure usually means the bot's role is below theirs in the hierarchy.
           console.warn(
-            `[authority] Cannot set nickname for admin "${member.user.username}" — bot role may be below this member's role in the server hierarchy. Move the bot's role above all member roles in Server Settings → Roles.`
+            `[authority] Cannot set nickname for admin "${member.user.username}" — bot role may be below this member in the hierarchy.`
           );
         }
         user.nametag = tag;
       }
-      // Always persist powerTag for authority members regardless of nickname success
       user.powerTag = tag;
       saveUser(member.id, user);
     }
   } catch (err) {
-    console.error(`[authority] Failed to apply authority tag to ${member.user.username}:`, err);
+    console.error(`[authority] Failed for ${member.user.username}:`, err);
   }
 }
 
@@ -107,15 +131,13 @@ export async function scanGuildAuthority(
   try {
     let processed = 0;
     let botsSkipped = 0;
-
     for (const [, member] of members) {
       if (member.user.bot) { botsSkipped++; continue; }
       await applyAuthorityTag(member);
       processed++;
     }
-
     console.log(
-      `[authority] Scanned "${guild.name}": ${processed} humans processed, ${botsSkipped} bots skipped`
+      `[authority] Scanned "${guild.name}": ${processed} humans, ${botsSkipped} bots skipped`
     );
   } catch (err) {
     console.error("[authority] Guild scan failed:", err);
