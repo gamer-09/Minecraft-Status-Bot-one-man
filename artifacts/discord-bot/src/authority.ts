@@ -1,4 +1,4 @@
-import { Guild, GuildMember, PermissionFlagsBits, Role } from "discord.js";
+import { Collection, Guild, GuildMember, PermissionFlagsBits, Role } from "discord.js";
 import { applyNametag } from "./nametags.js";
 import { getUser, saveUser } from "./store.js";
 
@@ -100,9 +100,11 @@ export async function applyAuthorityTag(member: GuildMember): Promise<void> {
 
 // ─── Guild-wide scan ──────────────────────────────────────────────────────────
 
-export async function scanGuildAuthority(guild: Guild): Promise<void> {
+export async function scanGuildAuthority(
+  guild: Guild,
+  members: Collection<string, GuildMember>,
+): Promise<void> {
   try {
-    const members = await guild.members.fetch();
     let processed = 0;
     let botsSkipped = 0;
 
