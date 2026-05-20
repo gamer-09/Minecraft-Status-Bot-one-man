@@ -28,6 +28,7 @@ import * as usetagCmd from "./commands/usetag.js";
 import * as reloadCmd from "./commands/reload.js";
 import * as testnickCmd from "./commands/testnick.js";
 import * as stopCmd from "./commands/stop.js";
+import * as startCmd from "./commands/start.js";
 
 const PREFIX = "!";
 
@@ -52,7 +53,7 @@ const commandList: Command[] = [
   statusCmd, ipCmd, playersCmd, pingCmd, helpCmd,
   setfeedCmd, setshopCmd, setvipCmd,
   coinflipCmd, rollCmd, rateCmd, roastCmd, pollCmd,
-  battleCmd, balanceCmd, shopCmd, buyCmd, inventoryCmd, usetagCmd, reloadCmd, testnickCmd, stopCmd,
+  battleCmd, balanceCmd, shopCmd, buyCmd, inventoryCmd, usetagCmd, reloadCmd, testnickCmd, stopCmd, startCmd,
 ];
 
 for (const cmd of commandList) {
