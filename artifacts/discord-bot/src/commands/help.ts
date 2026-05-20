@@ -1,6 +1,6 @@
 import { Message, EmbedBuilder } from "discord.js";
 import { config } from "../config.js";
-import { getStatusChannelId, getShopChannelId, getVipChannelId } from "../store.js";
+import { getStatusChannelId, getShopChannelId, getVipChannelId, getBattleChannelId } from "../store.js";
 
 export const name = "help";
 export const description = "List all available bot commands";
@@ -9,11 +9,13 @@ export async function execute(message: Message) {
   const statusChannelId = getStatusChannelId(config.statusChannelId);
   const shopChannelId = getShopChannelId();
   const vipChannelId = getVipChannelId();
+  const battleChannelId = getBattleChannelId();
 
   const lines = [
     statusChannelId ? `📡 Live feed → <#${statusChannelId}>` : "📡 No feed channel — use `!setfeed`",
     shopChannelId ? `🏪 Shop → <#${shopChannelId}>` : "🏪 Shop disabled — use `!setshop`",
     vipChannelId ? `🔑 VIP channel → <#${vipChannelId}>` : "🔑 No VIP channel — use `!setvip`",
+    battleChannelId ? `⚔️ Battle arena → <#${battleChannelId}>` : "⚔️ No battle arena — use `!setbattle`",
   ];
 
   const embed = new EmbedBuilder()
@@ -32,9 +34,20 @@ export async function execute(message: Message) {
         ].join("\n"),
       },
       {
-        name: "⚔️  Economy & Battles",
+        name: "⚔️  Battle Arena (battle channel only)",
         value: [
-          "`!battle @user` — Challenge someone, winner earns coins",
+          "`!battle @user` — Challenge someone to a turn-based duel",
+          "`!accept` — Accept a pending battle challenge",
+          "`!decline` — Decline a battle challenge",
+          "",
+          "**How it works:** Both fighters receive private DMs each turn.",
+          "Choose from 4 moves: Attack, Heavy, Defend, Special.",
+          "Winner earns coins — result announced in the arena.",
+        ].join("\n"),
+      },
+      {
+        name: "💰  Economy",
+        value: [
           "`!balance [@user]` — Check coins, tag & active effects",
           "`!shop` — Browse the item shop",
           "`!buy <item>` — Buy an item with your coins",
@@ -70,7 +83,8 @@ export async function execute(message: Message) {
           "`!setfeed [#channel]` — Set the live status feed channel",
           "`!setshop [#channel]` — Set the shop channel",
           "`!setvip [#channel]` — Set the secret VIP channel",
-          "`!stop feed|shop|vip` — Disable a feature until re-set",
+          "`!setbattle [#channel]` — Designate the exclusive battle arena",
+          "`!stop feed|shop|vip|battle` — Disable a feature",
           "`!reload` — Re-scan all members and re-apply nametags",
           "`!testnick @user` — Test nickname permission on a specific member",
           "*(All require Administrator)*",

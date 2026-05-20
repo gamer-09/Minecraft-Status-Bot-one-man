@@ -1,10 +1,10 @@
 import { Message, EmbedBuilder, PermissionFlagsBits } from "discord.js";
-import { clearStatusChannelId, clearShopChannelId, clearVipChannelId } from "../store.js";
+import { clearStatusChannelId, clearShopChannelId, clearVipChannelId, clearBattleChannelId } from "../store.js";
 
 export const name = "stop";
-export const description = "Disable a bot feature — !stop <feed|shop|vip> (Admin only)";
+export const description = "Disable a bot feature — !stop <feed|shop|vip|battle> (Admin only)";
 
-const USAGE = "Usage: `!stop feed` · `!stop shop` · `!stop vip`";
+const USAGE = "Usage: `!stop feed` · `!stop shop` · `!stop vip` · `!stop battle`";
 
 export async function execute(message: Message) {
   if (!message.member?.permissions.has(PermissionFlagsBits.Administrator)) {
@@ -22,7 +22,7 @@ export async function execute(message: Message) {
   const args = message.content.trim().split(/\s+/);
   const sub = args[1]?.toLowerCase();
 
-  if (!sub || !["feed", "shop", "vip"].includes(sub)) {
+  if (!sub || !["feed", "shop", "vip", "battle"].includes(sub)) {
     await message.reply({
       embeds: [
         new EmbedBuilder()
@@ -62,7 +62,18 @@ export async function execute(message: Message) {
       embeds: [
         new EmbedBuilder()
           .setTitle("⏹️  VIP Channel Cleared")
-          .setDescription("The VIP channel has been unlinked. Members with the VIP tag will no longer gain automatic access.\nRun `!setvip` to set a new one.")
+          .setDescription("The VIP channel has been unlinked.\nRun `!setvip` to set a new one.")
+          .setColor(0x95a5a6)
+          .setTimestamp(),
+      ],
+    });
+  } else if (sub === "battle") {
+    clearBattleChannelId();
+    await message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle("⏹️  Battle Arena Cleared")
+          .setDescription("The battle arena has been unset — `!battle` is now disabled everywhere.\nRun `!setbattle` to designate a new arena.")
           .setColor(0x95a5a6)
           .setTimestamp(),
       ],

@@ -15,6 +15,7 @@ interface BotConfig {
   statusChannelId?: string;
   shopChannelId?: string;
   vipChannelId?: string;
+  battleChannelId?: string;
 }
 
 function loadConfig(): BotConfig {
@@ -58,6 +59,16 @@ export function setVipChannelId(channelId: string): void {
 }
 export function clearVipChannelId(): void {
   const cfg = loadConfig(); delete cfg.vipChannelId; saveConfig(cfg);
+}
+
+export function getBattleChannelId(): string | undefined {
+  return loadConfig().battleChannelId;
+}
+export function setBattleChannelId(channelId: string): void {
+  const cfg = loadConfig(); cfg.battleChannelId = channelId; saveConfig(cfg);
+}
+export function clearBattleChannelId(): void {
+  const cfg = loadConfig(); delete cfg.battleChannelId; saveConfig(cfg);
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────

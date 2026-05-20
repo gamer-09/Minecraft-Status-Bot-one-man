@@ -1,6 +1,6 @@
 import "dotenv/config";
 import http from "http";
-import { Client, GatewayIntentBits, Collection, Events, Message } from "discord.js";
+import { Client, GatewayIntentBits, Partials, Collection, Events, Message } from "discord.js";
 import { config } from "./config.js";
 import { startMonitor } from "./monitor.js";
 import { assignStarterTag, scanAndAssignStarterTags } from "./nametags.js";
@@ -14,12 +14,15 @@ import * as helpCmd from "./commands/help.js";
 import * as setfeedCmd from "./commands/setfeed.js";
 import * as setshopCmd from "./commands/setshop.js";
 import * as setvipCmd from "./commands/setvip.js";
+import * as setbattleCmd from "./commands/setbattle.js";
 import * as coinflipCmd from "./commands/coinflip.js";
 import * as rollCmd from "./commands/roll.js";
 import * as rateCmd from "./commands/rate.js";
 import * as roastCmd from "./commands/roast.js";
 import * as pollCmd from "./commands/poll.js";
 import * as battleCmd from "./commands/battle.js";
+import * as acceptCmd from "./commands/accept.js";
+import * as declineCmd from "./commands/decline.js";
 import * as balanceCmd from "./commands/balance.js";
 import * as shopCmd from "./commands/shop.js";
 import * as buyCmd from "./commands/buy.js";
@@ -51,9 +54,10 @@ interface Command {
 const commands = new Collection<string, Command>();
 const commandList: Command[] = [
   statusCmd, ipCmd, playersCmd, pingCmd, helpCmd,
-  setfeedCmd, setshopCmd, setvipCmd,
+  setfeedCmd, setshopCmd, setvipCmd, setbattleCmd,
   coinflipCmd, rollCmd, rateCmd, roastCmd, pollCmd,
-  battleCmd, balanceCmd, shopCmd, buyCmd, inventoryCmd, usetagCmd, reloadCmd, testnickCmd, stopCmd, startCmd,
+  battleCmd, acceptCmd, declineCmd,
+  balanceCmd, shopCmd, buyCmd, inventoryCmd, usetagCmd, reloadCmd, testnickCmd, stopCmd, startCmd,
 ];
 
 for (const cmd of commandList) {
@@ -66,14 +70,15 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages,
   ],
+  partials: [Partials.Channel, Partials.Message],
 });
 
 client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Logged in as ${readyClient.user.tag}`);
   startMonitor(client);
 
-  // Scan all guilds: fetch members once, then run authority + starter tag scans
   for (const [, guild] of readyClient.guilds.cache) {
     try {
       const members = await guild.members.fetch();
@@ -85,15 +90,12 @@ client.once(Events.ClientReady, async (readyClient) => {
   }
 });
 
-// Prevent unhandled gateway errors from crashing the process
 client.on("error", (err) => {
   console.error("[discord] Client error:", err);
 });
 
-// New member joins — assign starter tag, then check if they're an admin/owner
 client.on(Events.GuildMemberAdd, async (member) => {
   await applyAuthorityTag(member);
-  // Only assign a starter tag if authority didn't already set one
   const { getUser } = await import("./store.js");
   const user = getUser(member.id);
   if (!user.nametag) {
@@ -101,13 +103,14 @@ client.on(Events.GuildMemberAdd, async (member) => {
   }
 });
 
-// Member's roles change — re-evaluate authority status
 client.on(Events.GuildMemberUpdate, async (_oldMember, newMember) => {
   await applyAuthorityTag(newMember);
 });
 
 client.on(Events.MessageCreate, async (message: Message) => {
   if (message.author.bot) return;
+  // Only handle guild messages — DM responses are collected inside the battle engine
+  if (message.channel.isDMBased()) return;
   if (!message.content.startsWith(PREFIX)) return;
 
   const args = message.content.slice(PREFIX.length).trim().split(/\s+/);
