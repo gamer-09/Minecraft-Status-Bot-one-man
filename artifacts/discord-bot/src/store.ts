@@ -36,6 +36,9 @@ export function getStatusChannelId(fallback?: string): string | undefined {
 export function setStatusChannelId(channelId: string): void {
   const cfg = loadConfig(); cfg.statusChannelId = channelId; saveConfig(cfg);
 }
+export function clearStatusChannelId(): void {
+  const cfg = loadConfig(); delete cfg.statusChannelId; saveConfig(cfg);
+}
 
 export function getShopChannelId(): string | undefined {
   return loadConfig().shopChannelId;
@@ -43,12 +46,18 @@ export function getShopChannelId(): string | undefined {
 export function setShopChannelId(channelId: string): void {
   const cfg = loadConfig(); cfg.shopChannelId = channelId; saveConfig(cfg);
 }
+export function clearShopChannelId(): void {
+  const cfg = loadConfig(); delete cfg.shopChannelId; saveConfig(cfg);
+}
 
 export function getVipChannelId(): string | undefined {
   return loadConfig().vipChannelId;
 }
 export function setVipChannelId(channelId: string): void {
   const cfg = loadConfig(); cfg.vipChannelId = channelId; saveConfig(cfg);
+}
+export function clearVipChannelId(): void {
+  const cfg = loadConfig(); delete cfg.vipChannelId; saveConfig(cfg);
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────
