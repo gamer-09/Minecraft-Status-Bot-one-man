@@ -130,25 +130,33 @@ export async function scanAndAssignStarterTags(
   for (const [, member] of members) {
     if (member.user.bot) continue;
 
+    const currentNick = member.nickname ?? "";
     const user = getUser(member.id);
 
-    if (user.nametag) {
-      // Already has a tag in store — check if the actual Discord nickname matches
-      const baseName = member.user.globalName ?? member.user.username;
-      const expectedNick = formatNick(baseName, user.nametag);
-      const currentNick = member.nickname ?? "";
-      if (currentNick === expectedNick) {
-        result.skipped++;
-        continue;
+    // Check if the current Discord nickname already contains a [tag]
+    const nickTagMatch = currentNick.match(/\[(.+?)\]$/);
+    if (nickTagMatch) {
+      const activeTag = nickTagMatch[1];
+      usedTags.add(activeTag);
+      // Sync the store if it's out of date, but NEVER change the nickname
+      if (user.nametag !== activeTag) {
+        user.nametag = activeTag;
+        saveUser(member.id, user);
       }
-      // Store tag exists but nickname doesn't match — re-apply
+      result.skipped++;
+      continue;
+    }
+
+    // Nickname has no tag — assign one if the store has one, otherwise pick fresh
+    if (user.nametag) {
+      usedTags.add(user.nametag);
       const res = await applyNametag(member, user.nametag);
       if (res.ok) result.reapplied.push(member.user.username);
       else result.failed.push({ username: member.user.username, reason: res.error ?? "unknown" });
       continue;
     }
 
-    // No tag yet — assign a fresh starter tag (avoid already-used ones)
+    // Completely untagged — assign a fresh starter tag
     const tag = pickStarterTag(usedTags);
     usedTags.add(tag);
     const res = await applyNametag(member, tag);
