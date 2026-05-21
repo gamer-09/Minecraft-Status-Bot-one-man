@@ -126,6 +126,8 @@ client.on(Events.MessageCreate, async (message: Message) => {
   const command = commands.get(commandName);
   if (!command) return;
 
+  await message.delete().catch(() => null);
+
   try {
     await command.execute(message);
   } catch (err) {
