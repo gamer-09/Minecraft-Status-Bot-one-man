@@ -2,14 +2,12 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
 COPY package.json ./
-RUN pnpm install --no-frozen-lockfile
+RUN npm install
 
 COPY tsconfig.json ./
 COPY src ./src
 
-RUN pnpm run build
+RUN npm run build
 
 CMD ["node", "dist/index.js"]
