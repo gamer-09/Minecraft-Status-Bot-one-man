@@ -1,6 +1,6 @@
 import "dotenv/config";
 import http from "http";
-import { Client, GatewayIntentBits, Partials, Collection, Events, Message } from "discord.js";
+import { Client, GatewayIntentBits, Partials, Collection, Events, Message, REST, Routes, SlashCommandBuilder, ChatInputCommandInteraction, User as DiscordUser } from "discord.js";
 import { config } from "./config.js";
 import { startMonitor } from "./monitor.js";
 import { assignStarterTag, scanAndAssignStarterTags } from "./nametags.js";
@@ -70,6 +70,105 @@ for (const cmd of commandList) {
   commands.set(cmd.name, cmd);
 }
 
+// ─── Slash Command Definitions ─────────────────────────────────────────────────
+// Commands that need options beyond name/description
+const SLASH_OPTIONS: Record<string, (b: SlashCommandBuilder) => void> = {
+  give:    (b) => { b.addUserOption(o => o.setName("user").setDescription("User to give or take coins from").setRequired(true)); b.addIntegerOption(o => o.setName("amount").setDescription("Amount (negative to remove)").setRequired(true)); },
+  battle:  (b) => { b.addUserOption(o => o.setName("opponent").setDescription("User to challenge").setRequired(true)); },
+  buy:     (b) => { b.addStringOption(o => o.setName("item").setDescription("Item name to buy").setRequired(true)); },
+  usetag:  (b) => { b.addStringOption(o => o.setName("tag").setDescription("Tag name to switch to").setRequired(true)); },
+  rate:    (b) => { b.addStringOption(o => o.setName("subject").setDescription("What to rate").setRequired(true)); },
+  roast:   (b) => { b.addUserOption(o => o.setName("target").setDescription("User to roast").setRequired(true)); },
+  profile: (b) => { b.addUserOption(o => o.setName("user").setDescription("User to view (leave blank for yourself)").setRequired(false)); },
+  poll:    (b) => {
+    b.addStringOption(o => o.setName("question").setDescription("Poll question").setRequired(true));
+    b.addStringOption(o => o.setName("option1").setDescription("Option 1").setRequired(true));
+    b.addStringOption(o => o.setName("option2").setDescription("Option 2").setRequired(true));
+    b.addStringOption(o => o.setName("option3").setDescription("Option 3").setRequired(false));
+    b.addStringOption(o => o.setName("option4").setDescription("Option 4").setRequired(false));
+    b.addStringOption(o => o.setName("option5").setDescription("Option 5").setRequired(false));
+  },
+};
+
+const slashCommandData = commandList.map(cmd => {
+  const builder = new SlashCommandBuilder().setName(cmd.name).setDescription(cmd.description);
+  SLASH_OPTIONS[cmd.name]?.(builder);
+  return builder.toJSON();
+});
+
+// ─── Slash ↔ Message Adapter ───────────────────────────────────────────────────
+function buildFakeMessage(interaction: ChatInputCommandInteraction): Message {
+  const cmd = interaction.commandName;
+  let content = `!${cmd}`;
+  let mentionedUser: DiscordUser | null = null;
+
+  switch (cmd) {
+    case "buy":
+      content = `!buy ${interaction.options.getString("item") ?? ""}`;
+      break;
+    case "usetag":
+      content = `!usetag ${interaction.options.getString("tag") ?? ""}`;
+      break;
+    case "rate":
+      content = `!rate ${interaction.options.getString("subject") ?? ""}`;
+      break;
+    case "give": {
+      const u = interaction.options.getUser("user");
+      const amt = interaction.options.getInteger("amount") ?? 0;
+      mentionedUser = u;
+      content = `!give <@${u?.id}> ${amt}`;
+      break;
+    }
+    case "battle": {
+      const opp = interaction.options.getUser("opponent");
+      mentionedUser = opp;
+      content = `!battle <@${opp?.id}>`;
+      break;
+    }
+    case "roast": {
+      const tgt = interaction.options.getUser("target");
+      mentionedUser = tgt;
+      content = `!roast <@${tgt?.id}>`;
+      break;
+    }
+    case "profile": {
+      mentionedUser = interaction.options.getUser("user");
+      break;
+    }
+    case "poll": {
+      const q = interaction.options.getString("question") ?? "";
+      const opts = ([1, 2, 3, 4, 5] as const)
+        .map(i => interaction.options.getString(`option${i}`))
+        .filter(Boolean);
+      content = `!poll "${q}" ${opts.map(o => `"${o}"`).join(" ")}`;
+      break;
+    }
+  }
+
+  let replied = false;
+  const reply = async (payload: unknown) => {
+    if (!replied) {
+      replied = true;
+      if (interaction.deferred) return interaction.editReply(payload as never);
+      await interaction.reply(payload as never);
+      return interaction.fetchReply();
+    }
+    return interaction.followUp(payload as never);
+  };
+
+  return {
+    reply,
+    channel: interaction.channel,
+    author: interaction.user,
+    member: interaction.member,
+    guild: interaction.guild,
+    client: interaction.client,
+    content,
+    mentions: { users: { first: () => mentionedUser } },
+    delete: async () => {},
+  } as unknown as Message;
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -93,6 +192,18 @@ client.once(Events.ClientReady, async (readyClient) => {
     } catch (err) {
       console.error(`[startup] Failed to scan guild "${guild.name}":`, err);
     }
+  }
+
+  // ── Register slash commands (guild = instant, global = ~1hr) ───────────────
+  const rest = new REST().setToken(config.token);
+  const route = config.guildId
+    ? Routes.applicationGuildCommands(config.clientId, config.guildId)
+    : Routes.applicationCommands(config.clientId);
+  try {
+    await rest.put(route, { body: slashCommandData });
+    console.log(`✅ Registered ${slashCommandData.length} slash commands (${config.guildId ? "guild — instant" : "global — ~1hr"})`);
+  } catch (err) {
+    console.error("[slash] Failed to register commands:", err);
   }
 });
 
@@ -131,6 +242,28 @@ client.on(Events.MessageCreate, async (message: Message) => {
   } catch (err) {
     console.error(`Error executing !${commandName}:`, err);
     await message.reply("Something went wrong. Please try again.").catch(() => null);
+  }
+});
+
+// ─── Slash Command Handler ─────────────────────────────────────────────────────
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const command = commands.get(interaction.commandName);
+  if (!command) return;
+
+  const fakeMessage = buildFakeMessage(interaction);
+
+  try {
+    await command.execute(fakeMessage);
+  } catch (err) {
+    console.error(`[slash] Error in /${interaction.commandName}:`, err);
+    const payload = { content: "Something went wrong. Please try again.", flags: 64 };
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(payload).catch(() => null);
+    } else {
+      await interaction.reply(payload).catch(() => null);
+    }
   }
 });
 
